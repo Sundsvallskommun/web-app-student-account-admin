@@ -44,7 +44,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ConfirmationDialogContextProvider>
-      <GuiProvider theme={theme} colorScheme={colorScheme}>
+      <GuiProvider theme={theme} colorScheme={colorScheme as any}>
         <AppWrapper>
           <LoginGuard>
             <Component {...pageProps} />
