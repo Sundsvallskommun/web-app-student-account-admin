@@ -13,9 +13,10 @@ import useSchoolStore from 'src/store/useSchoolStore.store';
 
 import debounce from 'lodash/debounce';
 
+import CreateResursModal from '@components/create-resurs-modal/create-resurs-modal.component';
+import DataTypeMenuBar from '@components/data-type-menubar/data-type-menubar.component';
 import SearchBar from '@components/search-bar/search-bar.component';
 import { setTimeout } from 'timers';
-import CreateResursModal from '@components/create-resurs-modal/create-resurs-modal.component';
 
 function fitImage(targetWidth, targetHeight, imageWidth, imageHeight) {
   // Calculate aspect ratios
@@ -58,7 +59,6 @@ export const Elevkontohantering: React.FC = () => {
 
   const debouncedSearchFunction = async (query: string) => {
     if (query.length > 2) {
-      setIsLoading(true);
       try {
         if (activeMenuIndexRef.current === 0) {
           const response = await searchPupils({ searchString: query });
@@ -104,7 +104,7 @@ export const Elevkontohantering: React.FC = () => {
     if (selectedSchoolId && selectedSchoolId !== '00000000-0000-0000-0000-000000000000') {
       // Reset classes and pupils when a new school is selected
       useSchoolStore.getState().resetClassesAndPupils();
-
+      setSearchQuery('');
       setSelectedClassId('');
 
       setIsLoadingClasses(true);
@@ -128,6 +128,7 @@ export const Elevkontohantering: React.FC = () => {
 
   useEffect(() => {
     if (selectedClassId) {
+      setSearchQuery('');
       setIsLoading(true);
       useSchoolStore
         .getState()
@@ -226,6 +227,7 @@ export const Elevkontohantering: React.FC = () => {
   const onSearchChangeHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     if (e.target.value.length > 2) {
+      setIsLoading(true);
       debouncedSearch(e.target.value);
     } else {
       setPupilSearchResults([]);
@@ -244,18 +246,42 @@ export const Elevkontohantering: React.FC = () => {
 
   return (
     <DefaultLayout title={`Elevkontohantering`}>
-      <SearchBar
-        activeMenuIndex={activeMenuIndex}
-        searchQuery={searchQuery}
-        onSearchChangeHandler={onSearchChangeHandler}
-        onMenuChange={onMenuChangeHandler}
-        pupilCount={pupils?.length}
-        resourceCount={resources.length}
-        pupilSearchResultsLength={pupilSearchResults.length}
-        pupilSearchResults={pupilSearchResults}
-        resourceSearchResultsLength={resourceSearchResults.length}
-        resourceSearchResults={resourceSearchResults}
-      />
+      <div className="flex items-center justify-between my-24">
+        <DataTypeMenuBar
+          activeMenuIndex={activeMenuIndex}
+          onMenuChange={onMenuChangeHandler}
+          pupilCount={pupils?.length}
+          resourceCount={resources.length}
+          pupilSearchResults={pupilSearchResults}
+          resourceSearchResults={resourceSearchResults}
+        />
+        {activeMenuIndex === 0 && (
+          <Button
+            variant="secondary"
+            type="button"
+            size="lg"
+            aria-label="Generera PDF"
+            disabled={isGeneratingPDF}
+            onClick={() => generatePDFTable()}
+          >
+            <FileIcon />
+            Visa som PDF
+          </Button>
+        )}
+        {activeMenuIndex === 1 && resources.length > 0 ? (
+          <Button
+            onClick={() => setCreateResursModalOpen(true)}
+            aria-label="Generera ny resurs"
+            color="vattjom"
+            type="button"
+            size="lg"
+          >
+            <Plus /> Ny resurs
+          </Button>
+        ) : (
+          ''
+        )}
+      </div>
 
       <Divider className="mb-24" strong={false} />
 
@@ -316,32 +342,11 @@ export const Elevkontohantering: React.FC = () => {
             </FormLabel>
           )}
         </div>
-        {activeMenuIndex === 0 && (
-          <Button
-            variant="secondary"
-            type="button"
-            size="lg"
-            aria-label="Generera PDF"
-            disabled={isGeneratingPDF}
-            onClick={() => generatePDFTable()}
-          >
-            <FileIcon />
-            Visa som PDF
-          </Button>
-        )}
-        {activeMenuIndex === 1 && resources.length > 0 ? (
-          <Button
-            onClick={() => setCreateResursModalOpen(true)}
-            aria-label="Generera ny resurs"
-            color="vattjom"
-            type="button"
-            size="lg"
-          >
-            <Plus /> Ny resurs
-          </Button>
-        ) : (
-          ''
-        )}
+        <SearchBar
+          activeMenuIndex={activeMenuIndex}
+          searchQuery={searchQuery}
+          onSearchChangeHandler={onSearchChangeHandler}
+        />
       </div>
 
       <div aria-live="polite">
