@@ -28,19 +28,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
   resourceSearchResults,
 }) => {
   const pupilButtonText = `Elever (${
-    activeMenuIndex === 1
-      ? '0'
-      : pupilSearchResultsLength > 0 && pupilSearchResults.every((result) => result.personNumber !== '')
-        ? pupilSearchResultsLength
-        : pupilCount
+    pupilSearchResultsLength > 0 && pupilSearchResults.every((result) => result.personNumber !== '')
+      ? pupilSearchResultsLength
+      : pupilCount
   })`;
 
   const resourceButtonText = `Resurser (${
-    activeMenuIndex === 0
-      ? '0'
-      : resourceSearchResultsLength > 0 && resourceSearchResults.every((result) => result.name !== '')
-        ? resourceSearchResultsLength
-        : resourceCount
+    resourceSearchResultsLength > 0 && resourceSearchResults.every((result) => result.name !== '')
+      ? resourceSearchResultsLength
+      : resourceCount
   })`;
 
   return (
