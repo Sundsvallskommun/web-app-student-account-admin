@@ -49,19 +49,23 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
   const { fetchResources } = useSchoolStore();
 
   const handleSave = async () => {
-    try {
-      await addResourceToSchool(userName, selectedSchoolId);
-      await fetchResources(selectedSchoolId);
+    const res = await addResourceToSchool(userName, selectedSchoolId);
+    if (!res.error) {
       snackbar({
         message: 'Resursen har skapats',
         status: 'success',
         position: 'bottom-right',
         className: 'mr-[7rem]',
       });
-
+      fetchResources(selectedSchoolId);
       onSave();
-    } catch (error) {
-      console.error('Failed to add resource:', error);
+    } else {
+      snackbar({
+        message: 'Resursen kunde inte läggas till',
+        status: 'error',
+        position: 'bottom-right',
+        className: 'mr-[7rem]',
+      });
     }
   };
 
