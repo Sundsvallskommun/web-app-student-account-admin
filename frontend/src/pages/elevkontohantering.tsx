@@ -181,7 +181,7 @@ export const Elevkontohantering: React.FC = () => {
 
       autoTable(doc, {
         startY: logoSize + padding * 2 + (isExportingClass ? fontSize : padding),
-        html: '#table-to-export .sk-zebratable',
+        html: '#table-to-export .sk-table',
         tableWidth: 'auto',
         theme: 'plain',
         tableLineColor: [0, 0, 0],
@@ -192,6 +192,7 @@ export const Elevkontohantering: React.FC = () => {
           lineColor: [0, 0, 0],
           lineWidth: 1,
         },
+
         didDrawCell: function (data) {
           if (data.cell.section === 'body') {
             const td = data.cell.raw as HTMLTableCellElement;
@@ -213,7 +214,16 @@ export const Elevkontohantering: React.FC = () => {
               if (data.cell.width > imgSize.width) {
                 paddingX = (data.cell.width - imgSize.width) / 2;
               }
-              doc.addImage(img.src, x + paddingX, y + paddingY, imgSize.width, imgSize.height);
+              if (img) {
+                doc.addImage({
+                  imageData: img.src,
+                  x: x + paddingX,
+                  y: y + paddingY,
+                  width: imgSize.width,
+                  height: imgSize.height,
+                  format: 'JPEG',
+                });
+              }
             }
           }
         },
