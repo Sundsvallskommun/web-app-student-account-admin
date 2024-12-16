@@ -5,8 +5,8 @@ import React from 'react';
 interface DataTypeMenuBarProps {
   activeMenuIndex: number;
   onMenuChange: (index: number) => void;
-  pupilCount: number;
-  resourceCount: number;
+  pupils: Pupil[];
+  resources: ResourceData[];
   pupilSearchResults: Pupil[];
   resourceSearchResults: ResourceData[];
 }
@@ -14,21 +14,17 @@ interface DataTypeMenuBarProps {
 const DataTypeMenuBar: React.FC<DataTypeMenuBarProps> = ({
   activeMenuIndex,
   onMenuChange,
-  pupilCount = 0,
-  resourceCount = 0,
+  pupils,
+  resources,
   pupilSearchResults,
   resourceSearchResults,
 }) => {
   const pupilButtonText = `Elever (${
-    pupilSearchResults?.length > 0 && pupilSearchResults.every((result) => result.personNumber !== '')
-      ? pupilSearchResults?.length
-      : pupilCount
+    pupilSearchResults?.length > 0 ? pupilSearchResults?.length : (pupils?.length ?? 0)
   })`;
 
   const resourceButtonText = `Resurser (${
-    resourceSearchResults?.length > 0 && resourceSearchResults.every((result) => result.name !== '')
-      ? resourceSearchResults?.length
-      : resourceCount
+    resourceSearchResults?.length > 0 ? resourceSearchResults?.length : (resources?.length ?? 0)
   })`;
 
   return (

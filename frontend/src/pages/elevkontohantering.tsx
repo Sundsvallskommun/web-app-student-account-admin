@@ -57,6 +57,12 @@ export const Elevkontohantering: React.FC = () => {
   const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
   const [isCreateResursModalOpen, setCreateResursModalOpen] = useState<boolean>(false);
 
+  const resetSearch = () => {
+    setSearchQuery('');
+    setPupilSearchResults([]);
+    setResourceSearchResults([]);
+  };
+
   const debouncedSearchFunction = async (query: string) => {
     if (query.length > 2) {
       try {
@@ -104,7 +110,7 @@ export const Elevkontohantering: React.FC = () => {
     if (selectedSchoolId && selectedSchoolId !== '00000000-0000-0000-0000-000000000000') {
       // Reset classes and pupils when a new school is selected
       useSchoolStore.getState().resetClassesAndPupils();
-      setSearchQuery('');
+      resetSearch();
       setSelectedClassId('');
 
       setIsLoadingClasses(true);
@@ -128,7 +134,7 @@ export const Elevkontohantering: React.FC = () => {
 
   useEffect(() => {
     if (selectedClassId) {
-      setSearchQuery('');
+      resetSearch();
       setIsLoading(true);
       useSchoolStore
         .getState()
@@ -248,9 +254,6 @@ export const Elevkontohantering: React.FC = () => {
 
   const onMenuChangeHandler = (newIndex: number) => {
     setActiveMenuIndex(newIndex);
-    setSearchQuery('');
-    setPupilSearchResults([]);
-    setResourceSearchResults([]);
     setSearchFieldTouched(false);
   };
 
@@ -260,8 +263,8 @@ export const Elevkontohantering: React.FC = () => {
         <DataTypeMenuBar
           activeMenuIndex={activeMenuIndex}
           onMenuChange={onMenuChangeHandler}
-          pupilCount={pupils?.length}
-          resourceCount={resources.length}
+          pupils={pupils}
+          resources={resources}
           pupilSearchResults={pupilSearchResults}
           resourceSearchResults={resourceSearchResults}
         />
@@ -272,6 +275,7 @@ export const Elevkontohantering: React.FC = () => {
             size="lg"
             aria-label="Generera PDF"
             disabled={isGeneratingPDF}
+            loading={isGeneratingPDF}
             onClick={() => generatePDFTable()}
           >
             <FileIcon />
@@ -305,6 +309,7 @@ export const Elevkontohantering: React.FC = () => {
               className="cursor-pointer w-[33rem] mt-8  bg-custom-gray"
               value={selectedSchoolId}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSchoolId(e.target.value)}
+              onClick={() => resetSearch()}
             >
               <Select.Option disabled value="">
                 - Välj skola -
@@ -329,6 +334,7 @@ export const Elevkontohantering: React.FC = () => {
                 }`}
                 value={selectedSchoolId ? selectedClassId || '' : ''}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClassId(e.target.value)}
+                onClick={() => resetSearch()}
                 disabled={!selectedSchoolId || isLoadingSchools}
               >
                 {selectedSchoolId ? (
@@ -369,13 +375,7 @@ export const Elevkontohantering: React.FC = () => {
               <Table
                 data={activeMenuIndex === 0 ? pupilSearchResults : resourceSearchResults}
                 activeMenuIndex={activeMenuIndex}
-                isPrintMode={false}
-                selectedSchoolName={selectedSchoolName}
-              />
-              <Table
-                data={activeMenuIndex === 0 ? pupilSearchResults : resourceSearchResults}
-                activeMenuIndex={activeMenuIndex}
-                isPrintMode={true}
+                isPrintMode={isGeneratingPDF}
                 selectedSchoolName={selectedSchoolName}
               />
             </>
@@ -396,14 +396,7 @@ export const Elevkontohantering: React.FC = () => {
               <Table
                 data={transformedPupils}
                 activeMenuIndex={activeMenuIndex}
-                isPrintMode={false}
-                selectedSchoolName={selectedSchoolName}
-                selectedClassId={selectedClassId}
-              />
-              <Table
-                data={transformedPupils}
-                activeMenuIndex={activeMenuIndex}
-                isPrintMode={true}
+                isPrintMode={isGeneratingPDF}
                 selectedSchoolName={selectedSchoolName}
                 selectedClassId={selectedClassId}
               />
