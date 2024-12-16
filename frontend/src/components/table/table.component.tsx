@@ -14,6 +14,7 @@ interface TableProps {
   isPrintMode?: boolean;
   selectedSchoolName: string;
   selectedSchoolId?: string;
+  selectedClassId?: string;
 }
 
 export const Table: React.FunctionComponent<TableProps> = ({
@@ -21,6 +22,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   activeMenuIndex,
   isPrintMode,
   selectedSchoolId,
+  selectedClassId,
 }) => {
   const [selectedUser, setSelectedUser] = useState<Pupil | ResourceData | null>(null);
   const [isEditStudentModalOpen, setEditStudentModalOpen] = useState<boolean>(false);
@@ -28,7 +30,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const { showConfirmation } = useConfirm();
   const snackbar = useSnackbar();
 
-  const { fetchResources } = useSchoolStore();
+  const { fetchResources, fetchPupils } = useSchoolStore();
 
   const studentHeaders: AutoTableHeader[] = [
     {
@@ -117,6 +119,11 @@ export const Table: React.FunctionComponent<TableProps> = ({
     setEditStudentModalOpen(false);
   };
 
+  const handleSavePupil = () => {
+    handleCloseModal();
+    selectedClassId && fetchPupils(selectedClassId);
+  };
+
   const deleteResource = async (user: ResourceData) => {
     const confirmationTitle = 'Ta bort resurs';
     const confirmationMessage = (
@@ -177,7 +184,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
           aria-labelledby="Redigera student"
           pupil={selectedUser as Pupil}
           onClose={handleCloseModal}
-          onSave={handleCloseModal}
+          onSave={handleSavePupil}
           show={isEditStudentModalOpen}
           aria-modal="true"
         />

@@ -139,6 +139,7 @@ const EditPupilModal: React.FC<EditPupilModalProps> = ({ pupil, onClose, onSave,
               setPupilData={setPupilData}
               onClose={onClose}
               setIsConfirmationModalOpen={setIsConfirmationModalOpen}
+              setHasChanges={setHasChanges}
             />
           </ConfirmationDialogContextProvider>
         </div>

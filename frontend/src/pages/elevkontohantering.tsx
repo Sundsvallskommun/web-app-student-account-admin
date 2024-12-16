@@ -388,12 +388,14 @@ export const Elevkontohantering: React.FC = () => {
                 activeMenuIndex={activeMenuIndex}
                 isPrintMode={false}
                 selectedSchoolName={selectedSchoolName}
+                selectedClassId={selectedClassId}
               />
               <Table
                 data={transformedPupils}
                 activeMenuIndex={activeMenuIndex}
                 isPrintMode={true}
                 selectedSchoolName={selectedSchoolName}
+                selectedClassId={selectedClassId}
               />
             </>
           ) : (

@@ -53,7 +53,7 @@ export default function DefaultLayout({ title, children }) {
             Vi använder kakor, cookies, för att ge dig en förbättrad upplevelse, sammanställa statistik och för att viss
             nödvändig funktionalitet ska fungera på webbplatsen.{' '}
             <NextLink href="/kakor" passHref>
-              <Link>Läs mer om hur vi använder kakor</Link>
+              <Link as="span">Läs mer om hur vi använder kakor</Link>
             </NextLink>
           </p>
         }
