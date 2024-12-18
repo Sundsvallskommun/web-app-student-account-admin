@@ -16,6 +16,7 @@ interface SchoolState {
   fetchClasses: (schoolId: string) => Promise<void>;
   fetchPupils: (classId: string) => Promise<void>;
   resetClassesAndPupils: () => void;
+  resetResources: () => void;
   fetchResources: (unitId: string) => Promise<void>;
   isLoadingResources: boolean;
 }
@@ -61,6 +62,7 @@ export const useSchoolStore = create<SchoolState>((set) => ({
   },
 
   resetClassesAndPupils: () => set({ classes: [], pupils: [] }),
+  resetResources: () => set({ resources: [] }),
 
   fetchResources: async (unitId: string) => {
     set({ isLoadingResources: true });
