@@ -282,7 +282,7 @@ export const Elevkontohantering: React.FC = () => {
             Visa som PDF
           </Button>
         )}
-        {activeMenuIndex === 1 && resources.length > 0 ? (
+        {activeMenuIndex === 1 ? (
           <Button
             onClick={() => setCreateResursModalOpen(true)}
             aria-label="Generera ny resurs"
@@ -292,9 +292,7 @@ export const Elevkontohantering: React.FC = () => {
           >
             <Plus /> Ny resurs
           </Button>
-        ) : (
-          ''
-        )}
+        ) : null}
       </div>
 
       <Divider className="mb-24" strong={false} />
