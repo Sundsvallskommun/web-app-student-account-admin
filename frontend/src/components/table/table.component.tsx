@@ -86,10 +86,10 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   useEffect(() => {
     if (isPupilType) {
-      getPrefetchedImages(pagedData);
+      getPrefetchedImages(isPrintMode ? data : pagedData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPupilType, page]);
+  }, [isPupilType, page, isPrintMode]);
 
   const studentHeaders: AutoTableHeader[] = [
     {

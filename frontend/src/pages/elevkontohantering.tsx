@@ -240,7 +240,7 @@ export const Elevkontohantering: React.FC = () => {
       const filename = isExportingClass ? `${selectedSchool.name} klass ${selectedClass.name}` : 'table_export.pdf';
       doc.save(filename);
       setIsGeneratingPDF(false);
-    }, 100);
+    }, 250);
   };
 
   const onSearchChangeHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
