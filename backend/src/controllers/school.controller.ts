@@ -3,7 +3,7 @@ import { RequestWithUser } from '@/interfaces/auth.interface';
 import { Class, Pupil, Resource, School } from '@/interfaces/school';
 import authMiddleware from '@/middlewares/auth.middleware';
 import ApiService from '@/services/api.service';
-import { Body, Controller, Delete, Get, Header, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
+import { Body, Controller, Delete, Get, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
 
 interface ResponseData<T> {
@@ -199,25 +199,5 @@ export class SchoolController {
     } catch (error) {
       throw new HttpException(500, error.message);
     }
-  }
-
-  // Images
-
-  @Get('/image/:personId')
-  @OpenAPI({ summary: 'Return pupil image' })
-  @UseBefore(authMiddleware)
-  @Header('Content-Type', 'image/jpeg')
-  @Header('Cross-Origin-Embedder-Policy', 'require-corp')
-  @Header('Cross-Origin-Resource-Policy', 'cross-origin')
-  async getEmployeeImage(@Param('personId') personId: string, @QueryParam('width') width = 120): Promise<any> {
-    const url = `education/1.0/${personId}/personimage`;
-    const res = await this.apiService.get<any>({
-      url,
-      responseType: 'arraybuffer',
-      params: {
-        width: width,
-      },
-    });
-    return res.data;
   }
 }

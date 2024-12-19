@@ -8,6 +8,7 @@ Dessa APIer används i projektet, applikationsanvändaren i WSO2 måste prenumer
 | --------------- | ------: |
 | simulatorserver |     2.0 |
 | education       |     1.0 |
+| employee        |     1.0 |
 
 ## Utveckling
 

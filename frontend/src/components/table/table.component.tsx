@@ -24,9 +24,9 @@ const imageUrlToBase64 = async (url: string) => {
   });
 };
 
-const fetchPrefetchedImages = async (data: Pupil[]): Promise<Record<string, string>> => {
+const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<Record<string, string>> => {
   const imagePromises = data.map(async (pupil) => {
-    if (pupil.personId) {
+    if (!prefetchedImages[pupil.personId] && pupil.personId) {
       const base64Image = (await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`))) as string; // Pass the raw ArrayBuffer from the response
 
       return { [pupil.personId]: base64Image };
@@ -44,7 +44,7 @@ const fetchPrefetchedImages = async (data: Pupil[]): Promise<Record<string, stri
       }
       return acc;
     },
-    {} as Record<string, string>
+    prefetchedImages as Record<string, string>
   );
 };
 
@@ -67,6 +67,10 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const [selectedUser, setSelectedUser] = useState<Pupil | ResourceData | null>(null);
   const [isEditStudentModalOpen, setEditStudentModalOpen] = useState<boolean>(false);
   const [prefetchedImages, setPrefetchedImages] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(1);
+
+  const pageSize = isPrintMode ? 1000 : 10;
+  const pagedData = data.slice((page - 1) * pageSize, page * pageSize);
 
   const { showConfirmation } = useConfirm();
   const snackbar = useSnackbar();
@@ -76,15 +80,16 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const isPupilType = activeMenuIndex === 0;
 
   const getPrefetchedImages = async (data) => {
-    const prefetchedImages = await fetchPrefetchedImages(data);
-    setPrefetchedImages(prefetchedImages);
+    const _prefetchedImages = await fetchPrefetchedImages(data, prefetchedImages);
+    setPrefetchedImages({ ..._prefetchedImages });
   };
 
   useEffect(() => {
     if (isPupilType) {
-      getPrefetchedImages(data);
+      getPrefetchedImages(pagedData);
     }
-  }, [isPupilType, data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPupilType, page]);
 
   const studentHeaders: AutoTableHeader[] = [
     {
@@ -92,7 +97,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
       label: 'Bild',
       isShown: true,
       isColumnSortable: false,
-      renderColumn: (value: string, obj: any) => (
+      renderColumn: (value: string, obj: Pupil) => (
         <Avatar imageUrl={prefetchedImages[obj.personId]} rounded initials={getInitials(value)} size="md" />
       ),
     },
@@ -101,7 +106,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
       label: 'Namn',
       isShown: true,
       isColumnSortable: true,
-      renderColumn: (value: string, obj: any) => <span className="font-bold">{value}</span>,
+      renderColumn: (value: string) => <span className="font-bold">{value}</span>,
     },
     { property: 'personNumber', label: 'Född datum', isShown: true, isColumnSortable: true },
     { property: 'loginname', label: 'Användarnamn', isShown: true, isColumnSortable: true },
@@ -148,7 +153,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
             label: 'Bild',
             isShown: true,
             isColumnSortable: false,
-            renderColumn: (value: string, obj: any) => (
+            renderColumn: (value: string, obj: Pupil) => (
               <img
                 style={{ display: 'inline-block', height: '100%' }}
                 src={prefetchedImages[obj.personId]}
@@ -257,7 +262,9 @@ export const Table: React.FunctionComponent<TableProps> = ({
           dense={false}
           autodata={data}
           autoheaders={headers}
-          pageSize={isPrintMode ? 100 : 10}
+          pageSize={pageSize}
+          page={page}
+          changePage={setPage}
         />
       )}
 
