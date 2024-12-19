@@ -57,6 +57,9 @@ export const Elevkontohantering: React.FC = () => {
   const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
   const [isCreateResursModalOpen, setCreateResursModalOpen] = useState<boolean>(false);
 
+  const resetClassesAndPupils = useSchoolStore((s) => s.resetClassesAndPupils);
+  const resetResources = useSchoolStore((s) => s.resetResources);
+
   const resetSearch = () => {
     setSearchQuery('');
     setPupilSearchResults([]);
@@ -241,6 +244,11 @@ export const Elevkontohantering: React.FC = () => {
   };
 
   const onSearchChangeHandler = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    resetClassesAndPupils();
+    resetResources();
+    setSelectedSchoolName('');
+    setSelectedSchoolId('');
+    setSelectedClassId('');
     setSearchQuery(e.target.value);
     if (e.target.value.length > 2) {
       setIsLoading(true);
