@@ -254,6 +254,7 @@ export const Elevkontohantering: React.FC = () => {
       setIsLoading(true);
       debouncedSearch(e.target.value);
     } else {
+      setIsLoading(false);
       setPupilSearchResults([]);
       setResourceSearchResults([]);
     }
