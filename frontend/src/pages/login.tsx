@@ -28,9 +28,8 @@ export default function Start() {
         <main>
           <div className="flex items-center justify-center min-h-screen">
             <div className="max-w-5xl w-full flex flex-col bg-white p-20 shadow-lg text-left">
-              <div className="mb-14">
+              <div className="mb-14 text-center">
                 <h1 className="mb-10 text-xl">Elevkontohantering</h1>
-                <p className="my-0">Beskrivning av appen</p>
               </div>
 
               <Button
