@@ -1,4 +1,5 @@
 import { Pupil, ResourceData } from '@interfaces/school';
+import { useUserStore } from '@services/user-service/user-service';
 import { MenuBar } from '@sk-web-gui/react';
 import React from 'react';
 
@@ -19,6 +20,8 @@ const DataTypeMenuBar: React.FC<DataTypeMenuBarProps> = ({
   pupilSearchResults,
   resourceSearchResults,
 }) => {
+  const { user } = useUserStore();
+
   const pupilButtonText = `Elever (${
     pupilSearchResults?.length > 0 ? pupilSearchResults?.length : (pupils?.length ?? 0)
   })`;
@@ -34,11 +37,13 @@ const DataTypeMenuBar: React.FC<DataTypeMenuBarProps> = ({
           {pupilButtonText}
         </button>
       </MenuBar.Item>
-      <MenuBar.Item>
-        <button onClick={() => onMenuChange(1)} className="min-w-[12rem]">
-          {resourceButtonText}
-        </button>
-      </MenuBar.Item>
+      {user.role === 'admin' ? (
+        <MenuBar.Item>
+          <button onClick={() => onMenuChange(1)} className="min-w-[12rem]">
+            {resourceButtonText}
+          </button>
+        </MenuBar.Item>
+      ) : null}
     </MenuBar>
   );
 };

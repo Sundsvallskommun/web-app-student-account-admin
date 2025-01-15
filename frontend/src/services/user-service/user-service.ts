@@ -8,8 +8,11 @@ import { ServiceResponse } from '@interfaces/service';
 
 const handleSetUserResponse: (res: ApiResponse<User>) => User = (res) => ({
   name: res.data.name,
+  firstName: res.data.firstName,
+  lastName: res.data.lastName,
   username: res.data.username,
-  // permissions: res.data.permissions,
+  role: res.data.role,
+  permissions: res.data.permissions,
 });
 
 const getMe: () => Promise<ServiceResponse<User>> = () => {

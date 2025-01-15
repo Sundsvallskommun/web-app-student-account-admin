@@ -1,5 +1,8 @@
 export interface User {
   name: string;
+  firstName: string;
+  lastName: string;
   username: string;
-  // permissions: Permissions;
+  role: 'admin' | 'developer' | 'user';
+  permissions: Permissions;
 }
