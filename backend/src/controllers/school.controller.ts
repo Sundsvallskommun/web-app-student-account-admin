@@ -2,6 +2,7 @@ import { HttpException } from '@/exceptions/HttpException';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { Class, Pupil, Resource, School } from '@/interfaces/school';
 import authMiddleware from '@/middlewares/auth.middleware';
+import { hasPermissions, hasRoles } from '@/middlewares/permissions.middleware';
 import ApiService from '@/services/api.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
@@ -130,7 +131,7 @@ export class SchoolController {
 
   @Get('/resources/:unitId')
   @OpenAPI({ summary: 'Get all resources from a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
   async getResources(@Param('unitId') unitId: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource[]>> {
     const { username } = req.user;
     try {
@@ -145,7 +146,7 @@ export class SchoolController {
 
   @Post('/resource')
   @OpenAPI({ summary: 'Add a resource to a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async addResourceToSchool(
     @Body() body: { resourceLoginName: string; unitId: string },
     @Req() req: RequestWithUser,
@@ -165,7 +166,7 @@ export class SchoolController {
 
   @Delete('/resource')
   @OpenAPI({ summary: 'Delete a resource to a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async deleteResourceFromSchool(
     @QueryParam('resourceLoginName') resourceLoginName: string,
     @QueryParam('unitId') unitId: string,
@@ -185,7 +186,7 @@ export class SchoolController {
 
   @Get('/resources/search/:searchTerm')
   @OpenAPI({ summary: 'Search for resources' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
   async searchResources(@Param('searchTerm') searchTerm: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource>> {
     const { username } = req.user;
 

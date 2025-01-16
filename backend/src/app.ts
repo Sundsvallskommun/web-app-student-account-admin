@@ -41,8 +41,8 @@ import {
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 import { Profile } from './interfaces/profile.interface';
-import { HttpException } from './exceptions/HttpException';
 import { join } from 'path';
+import { getPermissions, getRole } from './services/authorization.service';
 
 const SessionStoreCreate = SESSION_MEMORY ? createMemoryStore(session) : createFileStore(session);
 const sessionTTL = 4 * 24 * 60 * 60;
@@ -73,6 +73,7 @@ const samlStrategy = new Strategy(
     // maxAssertionAgeMs: 2592000000,
     // authnRequestBinding: 'HTTP-POST',
     logoutCallbackUrl: SAML_LOGOUT_CALLBACK_URL,
+    acceptedClockSkewMs: -1,
   },
   async function (profile: Profile, done: VerifiedCallback) {
     if (!profile) {
@@ -81,14 +82,35 @@ const samlStrategy = new Strategy(
         message: 'Missing SAML profile',
       });
     }
-    const { givenName, surname, username } = profile;
 
-    if (!givenName || !surname) {
-      return done({
+    // Depending on using Onegate or ADFS for federation the profile data looks a bit different
+    // Here we use the null coalescing operator (??) to handle both cases.
+    // (A switch from Onegate to ADFS was done on august 6 2023 due to problems in MobilityGuard.)
+    //
+    // const { givenName, sn, email, groups } = profile;
+    const givenName = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ?? profile['givenName'];
+    const surname = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] ?? profile['sn'];
+    const groups = profile['http://schemas.xmlsoap.org/claims/Group']?.join(',') ?? profile['groups'];
+    const username = profile['urn:oid:0.9.2342.19200300.100.1.1'];
+
+    if (!givenName || !surname || !groups || !username) {
+      logger.error(
+        'Could not extract necessary profile data fields from the IDP profile. Does the Profile interface match the IDP profile response? The profile response may differ, for example Onegate vs ADFS.',
+      );
+      return done(null, null, {
         name: 'SAML_MISSING_ATTRIBUTES',
         message: 'Missing profile attributes',
       });
     }
+
+    const groupList: string[] = groups !== undefined ? (groups.split(',').map(x => x.toLowerCase()) as string[]) : [];
+
+    const appGroups: string[] = groupList.length > 0 ? groupList : [];
+
+    console.log('appGroups', appGroups);
+    console.log('getPermissions(appGroups)', getPermissions(appGroups));
+    console.log('JSON.stringify(getPermissions(appGroups)', JSON.stringify(getPermissions(appGroups)));
+    console.log({ ...getPermissions(appGroups) });
 
     try {
       const findUser = {
@@ -96,6 +118,9 @@ const samlStrategy = new Strategy(
         givenName: givenName,
         surname: surname,
         username: username,
+        groups: appGroups,
+        role: getRole(appGroups),
+        permissions: getPermissions(appGroups),
       };
 
       done(null, findUser);
