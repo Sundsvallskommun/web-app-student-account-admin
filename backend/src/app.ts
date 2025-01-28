@@ -107,11 +107,6 @@ const samlStrategy = new Strategy(
 
     const appGroups: string[] = groupList.length > 0 ? groupList : [];
 
-    console.log('appGroups', appGroups);
-    console.log('getPermissions(appGroups)', getPermissions(appGroups));
-    console.log('JSON.stringify(getPermissions(appGroups)', JSON.stringify(getPermissions(appGroups)));
-    console.log({ ...getPermissions(appGroups) });
-
     try {
       const findUser = {
         name: `${givenName} ${surname}`,
