@@ -6,3 +6,8 @@ export interface User {
   role: 'admin' | 'developer' | 'user';
   permissions: Permissions;
 }
+
+export interface Permissions {
+  canEditAdmin: boolean;
+  canViewAdmin: boolean;
+}
