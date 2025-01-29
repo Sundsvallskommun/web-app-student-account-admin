@@ -5,8 +5,48 @@ import { AutoTable, AutoTableHeader, Avatar, Label, useConfirm, useSnackbar } fr
 import { apiURL } from '@utils/api-url';
 import { getInitials } from '@utils/get-initials';
 import { Edit, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSchoolStore from 'src/store/useSchoolStore.store';
+
+const imageUrlToBase64 = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const blob = await response.blob();
+  return new Promise((onSuccess, onError) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = function () {
+        onSuccess(this.result);
+      };
+      reader.readAsDataURL(blob);
+    } catch (e) {
+      onError(e);
+    }
+  });
+};
+
+const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<Record<string, string>> => {
+  const imagePromises = data.map(async (pupil) => {
+    if (!prefetchedImages[pupil.personId] && pupil.personId) {
+      const base64Image = (await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`))) as string; // Pass the raw ArrayBuffer from the response
+
+      return { [pupil.personId]: base64Image };
+    }
+    return null;
+  });
+
+  const resolvedImages = await Promise.all(imagePromises);
+
+  // Merge all objects into a single object
+  return resolvedImages.reduce(
+    (acc, curr) => {
+      if (curr) {
+        Object.assign(acc, curr);
+      }
+      return acc;
+    },
+    prefetchedImages as Record<string, string>
+  );
+};
 
 interface TableProps {
   data: (Pupil | ResourceData)[];
@@ -14,6 +54,7 @@ interface TableProps {
   isPrintMode?: boolean;
   selectedSchoolName: string;
   selectedSchoolId?: string;
+  selectedClassId?: string;
 }
 
 export const Table: React.FunctionComponent<TableProps> = ({
@@ -21,14 +62,34 @@ export const Table: React.FunctionComponent<TableProps> = ({
   activeMenuIndex,
   isPrintMode,
   selectedSchoolId,
+  selectedClassId,
 }) => {
   const [selectedUser, setSelectedUser] = useState<Pupil | ResourceData | null>(null);
   const [isEditStudentModalOpen, setEditStudentModalOpen] = useState<boolean>(false);
+  const [prefetchedImages, setPrefetchedImages] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(1);
+
+  const pageSize = isPrintMode ? 1000 : 10;
+  const pagedData = data.slice((page - 1) * pageSize, page * pageSize);
 
   const { showConfirmation } = useConfirm();
   const snackbar = useSnackbar();
 
-  const { fetchResources } = useSchoolStore();
+  const { fetchResources, fetchPupils } = useSchoolStore();
+
+  const isPupilType = activeMenuIndex === 0;
+
+  const getPrefetchedImages = async (data) => {
+    const _prefetchedImages = await fetchPrefetchedImages(data, prefetchedImages);
+    setPrefetchedImages({ ..._prefetchedImages });
+  };
+
+  useEffect(() => {
+    if (isPupilType) {
+      getPrefetchedImages(isPrintMode ? data : pagedData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPupilType, page, isPrintMode]);
 
   const studentHeaders: AutoTableHeader[] = [
     {
@@ -36,8 +97,8 @@ export const Table: React.FunctionComponent<TableProps> = ({
       label: 'Bild',
       isShown: true,
       isColumnSortable: false,
-      renderColumn: (value: string, obj: any) => (
-        <Avatar imageUrl={apiURL(`/image/${obj.personId}?width=480`)} rounded initials={getInitials(value)} size="md" />
+      renderColumn: (value: string, obj: Pupil) => (
+        <Avatar imageUrl={prefetchedImages[obj.personId]} rounded initials={getInitials(value)} size="md" />
       ),
     },
     {
@@ -45,7 +106,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
       label: 'Namn',
       isShown: true,
       isColumnSortable: true,
-      renderColumn: (value: string, obj: any) => <span className="font-bold">{value}</span>,
+      renderColumn: (value: string) => <span className="font-bold">{value}</span>,
     },
     { property: 'personNumber', label: 'Född datum', isShown: true, isColumnSortable: true },
     { property: 'loginname', label: 'Användarnamn', isShown: true, isColumnSortable: true },
@@ -73,7 +134,35 @@ export const Table: React.FunctionComponent<TableProps> = ({
       ),
       isColumnSortable: false,
     },
-  ];
+  ]
+    .filter((x) => {
+      if (isPrintMode) {
+        if (['image', 'displayname', 'loginname'].includes(x.property)) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    })
+    .map((x) =>
+      x.property === 'image' && isPrintMode
+        ? {
+            property: 'image',
+            label: 'Bild',
+            isShown: true,
+            isColumnSortable: false,
+            renderColumn: (value: string, obj: Pupil) => (
+              <img
+                style={{ display: 'inline-block', height: '100%' }}
+                src={prefetchedImages[obj.personId]}
+                alt="bild på even"
+              />
+            ),
+          }
+        : x
+    );
 
   const resursHeaders: AutoTableHeader[] = [
     {
@@ -115,6 +204,11 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const handleCloseModal = () => {
     setSelectedUser(null);
     setEditStudentModalOpen(false);
+  };
+
+  const handleSavePupil = () => {
+    handleCloseModal();
+    selectedClassId && fetchPupils(selectedClassId);
   };
 
   const deleteResource = async (user: ResourceData) => {
@@ -168,7 +262,9 @@ export const Table: React.FunctionComponent<TableProps> = ({
           dense={false}
           autodata={data}
           autoheaders={headers}
-          pageSize={isPrintMode ? 100 : 10}
+          pageSize={pageSize}
+          page={page}
+          changePage={setPage}
         />
       )}
 
@@ -177,7 +273,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
           aria-labelledby="Redigera student"
           pupil={selectedUser as Pupil}
           onClose={handleCloseModal}
-          onSave={handleCloseModal}
+          onSave={handleSavePupil}
           show={isEditStudentModalOpen}
           aria-modal="true"
         />

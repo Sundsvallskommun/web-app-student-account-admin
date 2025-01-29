@@ -1,14 +1,16 @@
 import { Pupil } from '@interfaces/school';
 import { generatePupilPassword } from '@services/school.service';
 import { Button, useConfirm, useSnackbar } from '@sk-web-gui/react';
+import React from 'react';
 
 type PasswordBtnProps = {
   setPupilData: React.Dispatch<React.SetStateAction<Pupil | null>>;
   onClose: () => void;
   setIsConfirmationModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasChanges: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const PasswordBtn = ({ setPupilData, onClose, setIsConfirmationModalOpen }: PasswordBtnProps) => {
+const PasswordBtn = ({ setPupilData, setHasChanges }: PasswordBtnProps) => {
   const { showConfirmation } = useConfirm();
   const snackbar = useSnackbar();
 
@@ -18,9 +20,7 @@ const PasswordBtn = ({ setPupilData, onClose, setIsConfirmationModalOpen }: Pass
     const confirmLabel = 'Ja, skapa nytt lösenord';
     const dismissLabel = 'Avbryt';
 
-    setIsConfirmationModalOpen(true);
     const confirmed = await showConfirmation(confirmationTitle, confirmationMessage, confirmLabel, dismissLabel);
-    setIsConfirmationModalOpen(false);
 
     if (confirmed) {
       const { data, error } = await generatePupilPassword();
@@ -33,16 +33,8 @@ const PasswordBtn = ({ setPupilData, onClose, setIsConfirmationModalOpen }: Pass
           className: 'mr-[7rem]',
         });
       } else {
-        // Update the pupilData with the new password
         setPupilData((prev: Pupil) => ({ ...prev, password: data }));
-
-        snackbar({
-          message: 'Ett nytt lösenord har skapats',
-          status: 'success',
-          position: 'bottom-right',
-          className: 'mr-[7rem]',
-        });
-        onClose();
+        setHasChanges(true);
       }
     }
   };

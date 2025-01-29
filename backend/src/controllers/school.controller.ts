@@ -2,8 +2,9 @@ import { HttpException } from '@/exceptions/HttpException';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { Class, Pupil, Resource, School } from '@/interfaces/school';
 import authMiddleware from '@/middlewares/auth.middleware';
+import { hasPermissions, hasRoles } from '@/middlewares/permissions.middleware';
 import ApiService from '@/services/api.service';
-import { Body, Controller, Delete, Get, Header, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
+import { Body, Controller, Delete, Get, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
 
 interface ResponseData<T> {
@@ -130,7 +131,7 @@ export class SchoolController {
 
   @Get('/resources/:unitId')
   @OpenAPI({ summary: 'Get all resources from a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
   async getResources(@Param('unitId') unitId: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource[]>> {
     const { username } = req.user;
     try {
@@ -145,7 +146,7 @@ export class SchoolController {
 
   @Post('/resource')
   @OpenAPI({ summary: 'Add a resource to a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async addResourceToSchool(
     @Body() body: { resourceLoginName: string; unitId: string },
     @Req() req: RequestWithUser,
@@ -165,7 +166,7 @@ export class SchoolController {
 
   @Delete('/resource')
   @OpenAPI({ summary: 'Delete a resource to a school' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async deleteResourceFromSchool(
     @QueryParam('resourceLoginName') resourceLoginName: string,
     @QueryParam('unitId') unitId: string,
@@ -185,7 +186,7 @@ export class SchoolController {
 
   @Get('/resources/search/:searchTerm')
   @OpenAPI({ summary: 'Search for resources' })
-  @UseBefore(authMiddleware)
+  @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
   async searchResources(@Param('searchTerm') searchTerm: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource>> {
     const { username } = req.user;
 
@@ -199,25 +200,5 @@ export class SchoolController {
     } catch (error) {
       throw new HttpException(500, error.message);
     }
-  }
-
-  // Images
-
-  @Get('/image/:personId')
-  @OpenAPI({ summary: 'Return pupil image' })
-  @UseBefore(authMiddleware)
-  @Header('Content-Type', 'image/jpeg')
-  @Header('Cross-Origin-Embedder-Policy', 'require-corp')
-  @Header('Cross-Origin-Resource-Policy', 'cross-origin')
-  async getEmployeeImage(@Param('personId') personId: string, @QueryParam('width') width = 120): Promise<any> {
-    const url = `education/1.0/${personId}/personimage`;
-    const res = await this.apiService.get<any>({
-      url,
-      responseType: 'arraybuffer',
-      params: {
-        width: width,
-      },
-    });
-    return res.data;
   }
 }

@@ -1,53 +1,5 @@
+import { Class, Pupil, ResourceData, School } from '@interfaces/school';
 import { ApiResponse, apiService } from './api-service';
-import { School, Class, Pupil, ResourceData } from '@interfaces/school';
-
-const emptySchool: School = {
-  unitId: '',
-  name: '',
-  sortCol: 0,
-};
-
-const emptyClass: Class = {
-  unitId: '',
-  name: '',
-  sortCol: 0,
-};
-
-const emptyPupil: Pupil = {
-  personId: '',
-  personNumber: '',
-  userId: '',
-  givenname: '',
-  lastname: '',
-  loginname: '',
-  password: '',
-  displayname: '',
-  isEnabled: true,
-  domainId: 0,
-  primaryEMailAddress: '',
-  name: '',
-  yearGroup: '',
-  typeOfSchool: '',
-  programme: '',
-  yearCode: '',
-  className: '',
-  isWriteable: true,
-};
-
-const emptyResource: ResourceData = {
-  createdBy: '',
-  loginname: '',
-  name: '',
-  schoolName: '',
-  type: '',
-  title: '',
-  status: 0,
-  detail: '',
-  instance: '',
-  additionalProp1: '',
-  additionalProp2: '',
-  additionalProp3: '',
-};
 
 export const getSchoolByLoginName = async (): Promise<{ data: School[]; error?: Error; status?: number }> => {
   try {
@@ -55,7 +7,7 @@ export const getSchoolByLoginName = async (): Promise<{ data: School[]; error?: 
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptySchool],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),
@@ -72,7 +24,7 @@ export const getClassesBySchoolId = async (
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptyClass],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),
@@ -89,7 +41,7 @@ export const getPupilsBySchoolClassId = async (
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptyPupil],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),
@@ -106,7 +58,7 @@ export const searchPupils = async (searchParams: {
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptyPupil],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),
@@ -163,7 +115,7 @@ export const getResourcesByUnitId = async (
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptyResource],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),
@@ -214,7 +166,7 @@ export const searchResources = async (
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
-      data: [emptyResource],
+      data: [],
       error: e.response?.status
         ? new Error(`Error ${e.response.status}: ${e.response.statusText}`)
         : new Error('An unknown error occurred'),

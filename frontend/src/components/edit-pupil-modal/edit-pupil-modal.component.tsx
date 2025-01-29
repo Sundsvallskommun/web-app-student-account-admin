@@ -139,6 +139,7 @@ const EditPupilModal: React.FC<EditPupilModalProps> = ({ pupil, onClose, onSave,
               setPupilData={setPupilData}
               onClose={onClose}
               setIsConfirmationModalOpen={setIsConfirmationModalOpen}
+              setHasChanges={setHasChanges}
             />
           </ConfirmationDialogContextProvider>
         </div>
@@ -146,16 +147,11 @@ const EditPupilModal: React.FC<EditPupilModalProps> = ({ pupil, onClose, onSave,
         <FormLabel htmlFor="status" className="-mb-8">
           Status
         </FormLabel>
-        <RadioButton.Group
-          value={pupilData.isEnabled ? 'Aktiv' : 'Inaktiv'}
-          name="isEnabled"
-          inline
-          onChange={handleStatusChange}
-        >
-          <RadioButton size="md" id="status-aktiv" value={'Aktiv'}>
+        <RadioButton.Group value={pupilData.isEnabled ? 'Aktiv' : 'Inaktiv'} name="isEnabled" inline>
+          <RadioButton size="md" id="status-aktiv" value={'Aktiv'} onChange={handleStatusChange}>
             Aktiv
           </RadioButton>
-          <RadioButton size="md" id="status-inaktiv" value={'Inaktiv'}>
+          <RadioButton size="md" id="status-inaktiv" value={'Inaktiv'} onChange={handleStatusChange}>
             Inaktiv
           </RadioButton>
         </RadioButton.Group>
