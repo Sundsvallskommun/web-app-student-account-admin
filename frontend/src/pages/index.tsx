@@ -224,12 +224,6 @@ export const Elevkontohantering: React.FC = () => {
               if (data.cell.width > imgSize.width) {
                 paddingX = (data.cell.width - imgSize.width) / 2;
               }
-              console.log('img', img);
-              console.log('imgSize', imgSize);
-              console.log('x', x);
-              console.log('y', y);
-              console.log('paddingX', paddingX);
-              console.log('paddingY', paddingY);
               if (img) {
                 doc.addImage({
                   imageData: img.src,
