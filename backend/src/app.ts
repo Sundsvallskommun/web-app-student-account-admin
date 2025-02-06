@@ -88,10 +88,10 @@ const samlStrategy = new Strategy(
     // (A switch from Onegate to ADFS was done on august 6 2023 due to problems in MobilityGuard.)
     //
     // const { givenName, sn, email, groups } = profile;
-    const givenName = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ?? profile['givenName'];
-    const surname = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] ?? profile['sn'];
+    const givenName = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ?? profile['givenname'];
+    const surname = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] ?? profile['surname'];
     const groups = profile['http://schemas.xmlsoap.org/claims/Group']?.join(',') ?? profile['groups'];
-    const username = profile['urn:oid:0.9.2342.19200300.100.1.1'];
+    const username = profile['uid'];
 
     if (!givenName || !surname || !groups || !username) {
       logger.error(
