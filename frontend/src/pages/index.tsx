@@ -212,7 +212,8 @@ export const Elevkontohantering: React.FC = () => {
               const { x, y } = data.cell;
               const { height, width } = data.cell;
 
-              const imgSize = fitImage(width, height, img.naturalWidth, img.naturalHeight);
+              // Set fallback size to 1 to avoid division by zero
+              const imgSize = fitImage(width, height, img.naturalWidth || 1, img.naturalHeight || 1);
 
               let paddingY = 0;
               let paddingX = 0;
@@ -223,6 +224,12 @@ export const Elevkontohantering: React.FC = () => {
               if (data.cell.width > imgSize.width) {
                 paddingX = (data.cell.width - imgSize.width) / 2;
               }
+              console.log('img', img);
+              console.log('imgSize', imgSize);
+              console.log('x', x);
+              console.log('y', y);
+              console.log('paddingX', paddingX);
+              console.log('paddingY', paddingY);
               if (img) {
                 doc.addImage({
                   imageData: img.src,
