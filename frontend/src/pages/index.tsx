@@ -212,7 +212,8 @@ export const Elevkontohantering: React.FC = () => {
               const { x, y } = data.cell;
               const { height, width } = data.cell;
 
-              const imgSize = fitImage(width, height, img.naturalWidth, img.naturalHeight);
+              // Set fallback size to 1 to avoid division by zero
+              const imgSize = fitImage(width, height, img.naturalWidth || 1, img.naturalHeight || 1);
 
               let paddingY = 0;
               let paddingX = 0;
