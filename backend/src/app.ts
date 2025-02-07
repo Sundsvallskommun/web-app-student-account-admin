@@ -292,7 +292,6 @@ class App {
           failureRedirect.search = queries.toString();
           res.redirect(failureRedirect.toString());
         } else if (!user) {
-          // BIG RED FLAG
           const failMessage = new URLSearchParams(failureRedirect.searchParams);
           failMessage.append('failMessage', 'NO_USER');
           failureRedirect.search = failMessage.toString();
