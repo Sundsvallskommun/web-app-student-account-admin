@@ -294,7 +294,7 @@ class App {
         } else if (!user) {
           // BIG RED FLAG
           const failMessage = new URLSearchParams(failureRedirect.searchParams);
-          failMessage.append('failMessage', 'MISSING_ATTRIBUTES');
+          failMessage.append('failMessage', 'NO_USER');
           failureRedirect.search = failMessage.toString();
           res.redirect(failureRedirect.toString());
         } else {
