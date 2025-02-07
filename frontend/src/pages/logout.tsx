@@ -5,7 +5,7 @@ export default function Logout() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/login');
+    router.push('/login?loggedout');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
