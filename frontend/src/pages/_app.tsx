@@ -1,13 +1,12 @@
-import type { AppProps /*, AppContext */ } from 'next/app';
-import { defaultTheme, GuiProvider, extendTheme, ConfirmationDialogContextProvider } from '@sk-web-gui/react';
-import { useMemo, useState } from 'react';
+import LoginGuard from '@components/login-guard/login-guard';
+import { ConfirmationDialogContextProvider, GuiProvider } from '@sk-web-gui/react';
 import '@styles/tailwind.scss';
-import { AppWrapper } from '../contexts/app.context';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sv';
-import utc from 'dayjs/plugin/utc';
 import updateLocale from 'dayjs/plugin/updateLocale';
-import LoginGuard from '@components/login-guard/login-guard';
+import utc from 'dayjs/plugin/utc';
+import type { AppProps /*, AppContext */ } from 'next/app';
+import { AppWrapper } from '../contexts/app.context';
 
 dayjs.extend(utc);
 dayjs.locale('sv');
@@ -31,20 +30,9 @@ dayjs.updateLocale('sv', {
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [colorScheme] = useState('light');
-
-  const theme = useMemo(
-    () =>
-      extendTheme({
-        cursor: colorScheme === 'light' ? 'pointer' : 'default',
-        colorSchemes: defaultTheme.colorSchemes,
-      }),
-    [colorScheme]
-  );
-
   return (
     <ConfirmationDialogContextProvider>
-      <GuiProvider theme={theme} colorScheme={colorScheme as any}>
+      <GuiProvider>
         <AppWrapper>
           <LoginGuard>
             <Component {...pageProps} />

@@ -6,16 +6,17 @@ import LoaderFullScreen from '@components/loader/loader-fullscreen';
 import { appURL } from '@utils/app-url';
 import { apiURL } from '@utils/api-url';
 
+// Turn on/off automatic login
+const autoLogin = true;
+
 export default function Start() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const params = new URLSearchParams(window.location.search);
   const isLoggedOut = params.get('loggedout') === '';
   const failMessage = params.get('failMessage');
-  // Turn on/off automatic login
-  const autoLogin = true;
 
   const initalFocus = useRef(null);
   const setInitalFocus = () => {
@@ -40,7 +41,6 @@ export default function Start() {
   useEffect(() => {
     setInitalFocus();
     if (!router.isReady) return;
-    setTimeout(() => setMounted(true), 500); // to not flash the login-screen on autologin
     if (isLoggedOut) {
       router.push(
         {
@@ -49,24 +49,28 @@ export default function Start() {
         '/login',
         { shallow: true }
       );
+      setIsLoading(false);
     } else {
       if (!failMessage && autoLogin) {
         // autologin
         onLogin();
       } else if (failMessage) {
         setErrorMessage(failMessage);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady]);
 
-  if (!mounted && !failMessage) {
+  if (isLoading) {
     // to not flash the login-screen on autologin
     return <LoaderFullScreen />;
   }
 
   return (
-    <EmptyLayout title={`$Elevkontohantering - Logga In`}>
+    <EmptyLayout title={`Elevkontohantering - Logga In`}>
       <main>
         <div className="flex items-center justify-center min-h-screen">
           <div className="max-w-5xl w-full flex flex-col text-light-primary bg-inverted-background-content p-20 shadow-lg text-left">

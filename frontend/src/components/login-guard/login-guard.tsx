@@ -5,19 +5,20 @@ import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const LoginGuard: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const user = useUserStore(useShallow((s: any) => s.user));
-  const getMe = useUserStore(useShallow((s: any) => s.getMe));
+  const user = useUserStore(useShallow((s) => s.user));
+  const getMe = useUserStore(useShallow((s) => s.getMe));
 
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
-    getMe();
+    getMe().finally(() => {
+      setIsLoading(false);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!mounted || (!user.name && !router.pathname.includes('/login'))) {
+  if (isLoading || (!user.name && !router.pathname.includes('/login'))) {
     return <LoaderFullScreen />;
   }
 
