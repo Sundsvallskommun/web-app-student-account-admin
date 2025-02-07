@@ -32,9 +32,7 @@ export default function Start() {
       successRedirect: `${appURL(path as string)}`,
       failureRedirect: `${appURL()}/login`,
     });
-    console.log('queries', queries);
     url.search = queries.toString();
-    console.log('sso url', url.toString());
     // NOTE: send user to login with SSO
     window.location.href = url.toString();
   };
@@ -44,7 +42,6 @@ export default function Start() {
     if (!router.isReady) return;
     setTimeout(() => setMounted(true), 500); // to not flash the login-screen on autologin
     if (isLoggedOut) {
-      console.log('user is logged out');
       router.push(
         {
           pathname: '/login',
@@ -54,11 +51,9 @@ export default function Start() {
       );
     } else {
       if (!failMessage && autoLogin) {
-        console.log('auto login');
         // autologin
         onLogin();
       } else if (failMessage) {
-        console.log('set fail message');
         setErrorMessage(failMessage);
       }
     }
