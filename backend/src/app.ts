@@ -12,7 +12,7 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
 import passport from 'passport';
-import { Strategy, VerifiedCallback } from 'passport-saml';
+import { Strategy, VerifiedCallback } from '@node-saml/passport-saml';
 import bodyParser from 'body-parser';
 import { useExpressServer, getMetadataArgsStorage } from 'routing-controllers';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
@@ -66,7 +66,7 @@ const samlStrategy = new Strategy(
     //decryptionPvk: SAML_PRIVATE_KEY,
     privateKey: SAML_PRIVATE_KEY,
     // Identity Provider's public key
-    cert: SAML_IDP_PUBLIC_CERT,
+    idpCert: SAML_IDP_PUBLIC_CERT,
     issuer: SAML_ISSUER,
     wantAssertionsSigned: false,
     // signatureAlgorithm: 'sha256',
@@ -75,6 +75,8 @@ const samlStrategy = new Strategy(
     // authnRequestBinding: 'HTTP-POST',
     logoutCallbackUrl: SAML_LOGOUT_CALLBACK_URL,
     acceptedClockSkewMs: -1,
+    wantAuthnResponseSigned: false,
+    audience: false,
   },
   async function (profile: Profile, done: VerifiedCallback) {
     if (!profile) {
@@ -123,6 +125,9 @@ const samlStrategy = new Strategy(
     } catch (err) {
       done(err);
     }
+  },
+  async function (profile: Profile, done: VerifiedCallback) {
+    return done(null, {});
   },
 );
 
