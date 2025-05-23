@@ -243,7 +243,8 @@ class App {
         }
 
         let successRedirect: URL, failureRedirect: URL;
-        const urls = req?.body?.RelayState?.split(',');
+        const relayStateRaw = req?.body?.RelayState;
+        const urls = typeof relayStateRaw === 'string' ? relayStateRaw.split(',') : [];
 
         if (isValidUrl(urls[0])) {
           successRedirect = new URL(urls[0]);
@@ -273,7 +274,8 @@ class App {
     this.app.post(`${BASE_URL_PREFIX}/saml/login/callback`, bodyParser.urlencoded({ extended: false }), (req, res, next) => {
       let successRedirect: URL, failureRedirect: URL;
 
-      let urls = req?.body?.RelayState?.split(',');
+      const relayStateRaw = req?.body?.RelayState;
+      const urls = typeof relayStateRaw === 'string' ? relayStateRaw.split(',') : [];
 
       if (isValidUrl(urls[0])) {
         successRedirect = new URL(urls[0]);
