@@ -27,9 +27,7 @@ import {
   SECRET_KEY,
   SAML_CALLBACK_URL,
   SAML_LOGOUT_CALLBACK_URL,
-  SAML_SUCCESS_REDIRECT,
   SAML_FAILURE_REDIRECT,
-  SAML_LOGOUT_REDIRECT,
   SAML_ENTRY_SSO,
   SAML_ISSUER,
   SAML_IDP_PUBLIC_CERT,
@@ -106,7 +104,7 @@ const samlStrategy = new Strategy(
       });
     }
 
-    const groupList: string[] = groups !== undefined ? (groups.split(',').map(x => x.toLowerCase()) as string[]) : [];
+    const groupList: string[] = groups?.split(',')?.map(x => x.toLowerCase()) ?? [];
 
     const appGroups: string[] = groupList.length > 0 ? groupList : [];
 
@@ -245,7 +243,7 @@ class App {
         }
 
         let successRedirect: URL, failureRedirect: URL;
-        const urls = req?.body?.RelayState.split(',');
+        const urls = req?.body?.RelayState?.split(',');
 
         if (isValidUrl(urls[0])) {
           successRedirect = new URL(urls[0]);
@@ -275,7 +273,7 @@ class App {
     this.app.post(`${BASE_URL_PREFIX}/saml/login/callback`, bodyParser.urlencoded({ extended: false }), (req, res, next) => {
       let successRedirect: URL, failureRedirect: URL;
 
-      let urls = req?.body?.RelayState.split(',');
+      let urls = req?.body?.RelayState?.split(',');
 
       if (isValidUrl(urls[0])) {
         successRedirect = new URL(urls[0]);
