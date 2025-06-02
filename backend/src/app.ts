@@ -35,6 +35,7 @@ import {
   SAML_PUBLIC_KEY,
   BASE_URL_PREFIX,
   SESSION_MEMORY,
+  SAML_SUCCESS_REDIRECT,
 } from '@config';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
@@ -248,14 +249,17 @@ class App {
 
         if (isValidUrl(urls[0])) {
           successRedirect = new URL(urls[0]);
+        } else {
+          successRedirect = new URL(SAML_SUCCESS_REDIRECT);
         }
+
         if (isValidUrl(urls[1])) {
           failureRedirect = new URL(urls[1]);
         } else {
           failureRedirect = successRedirect;
         }
 
-        const queries = new URLSearchParams(failureRedirect.searchParams);
+        const queries = new URLSearchParams(failureRedirect?.searchParams);
 
         if (req.session.messages?.length > 0) {
           queries.append('failMessage', req.session.messages[0]);
@@ -279,7 +283,10 @@ class App {
 
       if (isValidUrl(urls[0])) {
         successRedirect = new URL(urls[0]);
+      } else {
+        successRedirect = new URL(SAML_SUCCESS_REDIRECT);
       }
+
       if (isValidUrl(urls[1])) {
         failureRedirect = new URL(urls[1]);
       } else {
@@ -288,7 +295,7 @@ class App {
 
       passport.authenticate('saml', (err, user) => {
         if (err) {
-          const queries = new URLSearchParams(failureRedirect.searchParams);
+          const queries = new URLSearchParams(failureRedirect?.searchParams);
           if (err?.name) {
             queries.append('failMessage', err.name);
           } else {
@@ -297,14 +304,14 @@ class App {
           failureRedirect.search = queries.toString();
           res.redirect(failureRedirect.toString());
         } else if (!user) {
-          const failMessage = new URLSearchParams(failureRedirect.searchParams);
+          const failMessage = new URLSearchParams(failureRedirect?.searchParams);
           failMessage.append('failMessage', 'NO_USER');
           failureRedirect.search = failMessage.toString();
           res.redirect(failureRedirect.toString());
         } else {
           req.login(user, loginErr => {
             if (loginErr) {
-              const failMessage = new URLSearchParams(failureRedirect.searchParams);
+              const failMessage = new URLSearchParams(failureRedirect?.searchParams);
               failMessage.append('failMessage', 'SAML_UNKNOWN_ERROR');
               failureRedirect.search = failMessage.toString();
               res.redirect(failureRedirect.toString());
