@@ -110,6 +110,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
     },
     { property: 'personNumber', label: 'Född datum', isShown: true, isColumnSortable: true },
     { property: 'loginname', label: 'Användarnamn', isShown: true, isColumnSortable: true },
+    ...(isPrintMode ? [{ property: 'password', label: 'Lösenord', isShown: true, isColumnSortable: false }] : []),
     { property: 'name', label: 'Skola', isShown: true, isColumnSortable: true },
     { property: 'className', label: 'Klass', isShown: true, isColumnSortable: true },
     {
@@ -137,7 +138,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   ]
     .filter((x) => {
       if (isPrintMode) {
-        if (['image', 'displayname', 'loginname'].includes(x.property)) {
+        if (['image', 'displayname', 'loginname', 'password'].includes(x.property)) {
           return true;
         } else {
           return false;
