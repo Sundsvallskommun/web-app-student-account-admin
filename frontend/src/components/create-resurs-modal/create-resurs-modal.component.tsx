@@ -113,9 +113,9 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
               - Välj skola -
             </Select.Option>
             {schools
-              .filter((school) => school.unitId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
+              .filter((school) => school.schoolId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
               .map((school) => (
-                <Select.Option key={school.unitId} value={school.unitId}>
+                <Select.Option key={school.schoolId} value={school.schoolId}>
                   {school.name}
                 </Select.Option>
               ))}

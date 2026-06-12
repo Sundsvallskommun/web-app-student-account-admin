@@ -4,7 +4,7 @@ import {
   getSchoolByLoginName,
   getClassesBySchoolId,
   getPupilsBySchoolClassId,
-  getResourcesByUnitId,
+  getResourcesBySchoolId,
 } from '@services/school.service';
 
 interface SchoolState {
@@ -17,7 +17,7 @@ interface SchoolState {
   fetchPupils: (classId: string) => Promise<void>;
   resetClassesAndPupils: () => void;
   resetResources: () => void;
-  fetchResources: (unitId: string) => Promise<void>;
+  fetchResources: (schoolId: string) => Promise<void>;
   isLoadingResources: boolean;
 }
 
@@ -64,11 +64,11 @@ export const useSchoolStore = create<SchoolState>((set) => ({
   resetClassesAndPupils: () => set({ classes: [], pupils: [] }),
   resetResources: () => set({ resources: [] }),
 
-  fetchResources: async (unitId: string) => {
+  fetchResources: async (schoolId: string) => {
     set({ isLoadingResources: true });
 
     try {
-      const response = await getResourcesByUnitId(unitId);
+      const response = await getResourcesBySchoolId(schoolId);
       if (response.data) {
         set({ resources: response.data, isLoadingResources: false });
       }

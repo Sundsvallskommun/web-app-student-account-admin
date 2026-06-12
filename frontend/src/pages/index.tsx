@@ -128,7 +128,7 @@ export const Elevkontohantering: React.FC = () => {
         .getState()
         .fetchResources(selectedSchoolId)
         .then(() => {
-          const selectedSchool = schools.find((school) => school.unitId === selectedSchoolId);
+          const selectedSchool = schools.find((school) => school.schoolId === selectedSchoolId);
           setSelectedSchoolName(selectedSchool ? selectedSchool.name : '');
         })
         .catch((error) => console.error('Error fetching resources:', error));
@@ -176,8 +176,8 @@ export const Elevkontohantering: React.FC = () => {
       const logoSize = 15;
       const padding = 7;
       const fontSize = 19;
-      const selectedSchool = schools.find((school) => school.unitId === selectedSchoolId);
-      const selectedClass = classes.find((c) => c.unitId === selectedClassId);
+      const selectedSchool = schools.find((school) => school.schoolId === selectedSchoolId);
+      const selectedClass = classes.find((c) => c.groupId === selectedClassId);
       const isExportingClass = !pupilSearchResults.length && selectedSchool && selectedClass;
       const cellPadding = 10;
 
@@ -323,9 +323,9 @@ export const Elevkontohantering: React.FC = () => {
                 - Välj skola -
               </Select.Option>
               {schools
-                .filter((school) => school.unitId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
+                .filter((school) => school.schoolId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
                 .map((school) => (
-                  <Select.Option key={school.unitId} value={school.unitId}>
+                  <Select.Option key={school.schoolId} value={school.schoolId}>
                     {school.name}
                   </Select.Option>
                 ))}
@@ -351,9 +351,9 @@ export const Elevkontohantering: React.FC = () => {
                       - Välj klass -
                     </Select.Option>
                     {classes
-                      ?.filter((classItem) => classItem.unitId !== '00000000-0000-0000-0000-000000000000')
+                      ?.filter((classItem) => classItem.groupId !== '00000000-0000-0000-0000-000000000000')
                       .map((classItem) => (
-                        <Select.Option key={classItem.unitId} value={classItem.unitId}>
+                        <Select.Option key={classItem.groupId} value={classItem.groupId}>
                           {classItem.name}
                         </Select.Option>
                       ))}

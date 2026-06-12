@@ -1,3 +1,4 @@
+import { getApiBase, MUNICIPALITY_ID } from '@/config';
 import authMiddleware from '@/middlewares/auth.middleware';
 import ApiService from '@/services/api.service';
 import { Controller, Get, Header, Param, QueryParam, UseBefore } from 'routing-controllers';
@@ -6,6 +7,7 @@ import { OpenAPI } from 'routing-controllers-openapi';
 @Controller()
 export class EmployeeController {
   private apiService = new ApiService();
+  private apiBase = getApiBase('employee');
 
   // Images
 
@@ -16,7 +18,7 @@ export class EmployeeController {
   @Header('Cross-Origin-Embedder-Policy', 'require-corp')
   @Header('Cross-Origin-Resource-Policy', 'cross-origin')
   async getEmployeeImage(@Param('personId') personId: string, @QueryParam('width') width = 120): Promise<any> {
-    const url = `employee/1.0/${personId}/personimage`;
+    const url = `${this.apiBase}/${MUNICIPALITY_ID}/${personId}/personimage`;
     const res = await this.apiService.get<any>({
       url,
       responseType: 'arraybuffer',

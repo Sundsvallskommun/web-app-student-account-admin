@@ -1,11 +1,11 @@
 export interface School {
-  unitId: string;
+  schoolId: string;
   name: string;
   sortCol: number;
 }
 
 export interface Class {
-  unitId: string;
+  groupId: string;
   name: string;
   sortCol: number;
 }
