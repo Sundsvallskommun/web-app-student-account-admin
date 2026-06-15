@@ -17,7 +17,7 @@ interface ResponseData<T> {
 @Controller()
 export class SchoolController {
   private apiService = new ApiService();
-  private apiBase = `${getApiBase('pupilAccountManager')}/${MUNICIPALITY_ID}`;
+  private readonly apiBase = `${getApiBase('pupilAccountManager')}/${MUNICIPALITY_ID}`;
 
   @Get('/schools')
   @OpenAPI({ summary: 'Get all schools that user has access too by login name' })

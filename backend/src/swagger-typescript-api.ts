@@ -1,5 +1,5 @@
-import { exec } from 'child_process';
-import path from 'path';
+import { exec } from 'node:child_process';
+import path from 'node:path';
 import fs from 'node:fs';
 import yaml from 'js-yaml';
 

@@ -16,7 +16,6 @@ import debounce from 'lodash/debounce';
 import CreateResursModal from '@components/create-resurs-modal/create-resurs-modal.component';
 import DataTypeMenuBar from '@components/data-type-menubar/data-type-menubar.component';
 import SearchBar from '@components/search-bar/search-bar.component';
-import { setTimeout } from 'timers';
 
 function fitImage(targetWidth, targetHeight, imageWidth, imageHeight) {
   // Calculate aspect ratios

@@ -7,7 +7,7 @@ import { OpenAPI } from 'routing-controllers-openapi';
 @Controller()
 export class EmployeeController {
   private apiService = new ApiService();
-  private apiBase = getApiBase('employee');
+  private readonly apiBase = getApiBase('employee');
 
   // Images
 

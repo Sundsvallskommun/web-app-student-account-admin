@@ -7,7 +7,7 @@ import { OpenAPI } from 'routing-controllers-openapi';
 @Controller()
 export class HealthController {
   private apiService = new ApiService();
-  private apiBase = getApiBase('simulatorserver');
+  private readonly apiBase = getApiBase('simulatorserver');
 
   @Get('/health/up')
   @OpenAPI({ summary: 'Return health check' })
