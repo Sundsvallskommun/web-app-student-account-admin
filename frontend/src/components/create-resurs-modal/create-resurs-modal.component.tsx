@@ -50,6 +50,7 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
 
   const handleSave = async () => {
     const res = await addResourceToSchool(userName, selectedSchoolId);
+
     if (res.error) {
       snackbar({
         message: 'Resursen kunde inte läggas till',
