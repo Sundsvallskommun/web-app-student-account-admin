@@ -1,4 +1,6 @@
 import { config } from 'dotenv';
+export { APIS, getApiBase } from './api-config';
+
 config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
 
 export const CREDENTIALS = process.env.CREDENTIALS === 'true';
@@ -9,6 +11,7 @@ export const {
   NODE_ENV,
   PORT,
   API_BASE_URL,
+  MUNICIPALITY_ID,
   LOG_FORMAT,
   LOG_DIR,
   ORIGIN,

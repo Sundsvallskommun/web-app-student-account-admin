@@ -1,4 +1,11 @@
-import { cleanEnv, port, str, url,  } from 'envalid';
+import { cleanEnv, makeValidator, port, str, url } from 'envalid';
+
+const nonEmptyStr = makeValidator<string>(input => {
+  if (input === undefined || input === null || `${input}`.trim() === '') {
+    throw new Error('Expected a non-empty value');
+  }
+  return `${input}`.trim();
+});
 
 // NOTE: Make sure we got these in ENV
 const validateEnv = () => {
@@ -6,6 +13,7 @@ const validateEnv = () => {
     NODE_ENV: str(),
     SECRET_KEY: str(),
     API_BASE_URL: str(),
+    MUNICIPALITY_ID: nonEmptyStr(),
     CLIENT_KEY: str(),
     CLIENT_SECRET: str(),
     PORT: port(),

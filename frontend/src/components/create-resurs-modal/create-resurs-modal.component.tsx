@@ -50,7 +50,15 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
 
   const handleSave = async () => {
     const res = await addResourceToSchool(userName, selectedSchoolId);
-    if (!res.error) {
+
+    if (res.error) {
+      snackbar({
+        message: 'Resursen kunde inte läggas till',
+        status: 'error',
+        position: 'bottom-right',
+        className: 'mr-[7rem]',
+      });
+    } else {
       snackbar({
         message: 'Resursen har skapats',
         status: 'success',
@@ -59,13 +67,6 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
       });
       fetchResources(selectedSchoolId);
       onSave();
-    } else {
-      snackbar({
-        message: 'Resursen kunde inte läggas till',
-        status: 'error',
-        position: 'bottom-right',
-        className: 'mr-[7rem]',
-      });
     }
   };
 
@@ -113,9 +114,9 @@ const CreateResursModal: React.FC<CreateResursModalProps> = ({
               - Välj skola -
             </Select.Option>
             {schools
-              .filter((school) => school.unitId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
+              .filter((school) => school.schoolId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
               .map((school) => (
-                <Select.Option key={school.unitId} value={school.unitId}>
+                <Select.Option key={school.schoolId} value={school.schoolId}>
                   {school.name}
                 </Select.Option>
               ))}

@@ -107,11 +107,11 @@ export const updatePupil = async (pupilData: {
 
 // Resources
 
-export const getResourcesByUnitId = async (
-  unitId: string
+export const getResourcesBySchoolId = async (
+  schoolId: string
 ): Promise<{ data: ResourceData[]; error?: Error; status?: number }> => {
   try {
-    const response = await apiService.get<ApiResponse<ResourceData[]>>(`/resources/${unitId}`);
+    const response = await apiService.get<ApiResponse<ResourceData[]>>(`/resources/${schoolId}`);
     return { data: response.data.data, status: 200 };
   } catch (e) {
     return {
@@ -124,11 +124,11 @@ export const getResourcesByUnitId = async (
   }
 };
 
-export const addResourceToSchool = async (resourceLoginName: string, unitId: string) => {
+export const addResourceToSchool = async (resourceLoginName: string, schoolId: string) => {
   try {
     const response = await apiService.post(`/resource`, {
       resourceLoginName,
-      unitId,
+      schoolId,
     });
     return { data: response.data, message: 'Resource added successfully' };
   } catch (e) {
@@ -141,9 +141,9 @@ export const addResourceToSchool = async (resourceLoginName: string, unitId: str
   }
 };
 
-export const deleteResourceFromSchool = async (resourceLoginName: string, unitId: string) => {
+export const deleteResourceFromSchool = async (resourceLoginName: string, schoolId: string) => {
   try {
-    const queryParams = new URLSearchParams({ resourceLoginName, unitId }).toString();
+    const queryParams = new URLSearchParams({ resourceLoginName, schoolId }).toString();
 
     const response = await apiService.delete(`/resource?${queryParams}`);
 
