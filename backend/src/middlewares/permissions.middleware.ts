@@ -7,7 +7,7 @@ import { logger } from '@utils/logger';
 type KeyOfMap<M extends Map<unknown, unknown>> = M extends Map<infer K, unknown> ? K : never;
 
 export const hasPermissions =
-  (permissions: Array<keyof Permissions>) => async (req: Request, res: Response, next: NextFunction) => {
+  (permissions: Array<keyof Permissions>) => (req: Request, res: Response, next: NextFunction) => {
     const userPermissions = req.user?.permissions || [];
     if (permissions.every(permission => userPermissions[permission])) {
       next();
@@ -18,7 +18,7 @@ export const hasPermissions =
   };
 
 export const hasRoles =
-  (roles: Array<KeyOfMap<InternalRoleMap>>) => async (req: Request, res: Response, next: NextFunction) => {
+  (roles: Array<KeyOfMap<InternalRoleMap>>) => (req: Request, res: Response, next: NextFunction) => {
     const endpointPermissions = getPermissions(roles);
     const userPermissions = getPermissions(req.user?.groups || []);
     if (

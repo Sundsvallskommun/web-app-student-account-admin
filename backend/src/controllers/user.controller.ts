@@ -10,7 +10,7 @@ export class UserController {
   @Get('/me')
   @OpenAPI({ summary: 'Return current user' })
   @UseBefore(authMiddleware)
-  async getUser(@Req() req: RequestWithUser): Promise<{ data: ClientUser; message: string }> {
+  getUser(@Req() req: RequestWithUser): { data: ClientUser; message: string } {
     const { name, firstName, lastName, username, permissions, role } = req.user;
 
     if (!name) {

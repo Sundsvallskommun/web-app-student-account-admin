@@ -80,7 +80,7 @@ const samlStrategy = new Strategy(
     wantAuthnResponseSigned: false,
     audience: false,
   },
-  async function (profile: Profile, done: VerifiedCallback) {
+  function (profile: Profile, done: VerifiedCallback) {
     if (!profile) {
       return done({
         name: 'SAML_MISSING_PROFILE',
@@ -129,7 +129,7 @@ const samlStrategy = new Strategy(
       done(err);
     }
   },
-  async function (profile: Profile, done: VerifiedCallback) {
+  function (profile: Profile, done: VerifiedCallback) {
     return done(null, {});
   },
 );
