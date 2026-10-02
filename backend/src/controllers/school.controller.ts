@@ -3,7 +3,7 @@ import { HttpException } from '@/exceptions/HttpException';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { Class, Pupil, Resource, School } from '@/interfaces/school';
 import authMiddleware from '@/middlewares/auth.middleware';
-import { hasPermissions, hasRoles } from '@/middlewares/permissions.middleware';
+import { hasPermissions } from '@/middlewares/permissions.middleware';
 import ApiService from '@/services/api.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
@@ -53,7 +53,10 @@ export class SchoolController {
   @Get('/schoolclass/:schoolClassId/pupils')
   @OpenAPI({ summary: 'Get list of pupils in a specific class' })
   @UseBefore(authMiddleware)
-  async getPupils(@Param('schoolClassId') schoolClassId: string, @Req() req: RequestWithUser): Promise<ResponseData<Pupil[]>> {
+  async getPupils(
+    @Param('schoolClassId') schoolClassId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Pupil[]>> {
     const { username } = req.user;
 
     try {
@@ -110,7 +113,7 @@ export class SchoolController {
     @Body() body: { isEnabled: boolean; displayname: string; password: string },
 
     @Req() req: RequestWithUser,
-  ): Promise<ResponseData<{ updatedPupil: any }>> {
+  ): Promise<ResponseData<{ updatedPupil: unknown }>> {
     try {
       const { isEnabled, displayname, password } = body;
       const { username } = req.user;
@@ -121,7 +124,7 @@ export class SchoolController {
         displayname,
         password,
       };
-      const res = await this.apiService.patch<any>({ url, data: updateData });
+      const res = await this.apiService.patch<{ updatedPupil: unknown }>({ url, data: updateData });
 
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {
@@ -134,7 +137,10 @@ export class SchoolController {
   @Get('/resources/:schoolId')
   @OpenAPI({ summary: 'Get all resources from a school' })
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
-  async getResources(@Param('schoolId') schoolId: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource[]>> {
+  async getResources(
+    @Param('schoolId') schoolId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Resource[]>> {
     const { username } = req.user;
     try {
       const url = `${this.apiBase}/resources/${schoolId}?loginName=${username}`;
@@ -189,7 +195,10 @@ export class SchoolController {
   @Get('/resources/search/:searchTerm')
   @OpenAPI({ summary: 'Search for resources' })
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
-  async searchResources(@Param('searchTerm') searchTerm: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource>> {
+  async searchResources(
+    @Param('searchTerm') searchTerm: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Resource>> {
     const { username } = req.user;
 
     try {

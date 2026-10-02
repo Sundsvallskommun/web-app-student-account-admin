@@ -3,12 +3,10 @@
 /node_modules
 
 # code formatter
-.eslintrc
-.eslintignore
+eslint.config.mjs
 .editorconfig
-.huskyrc
-.lintstagedrc.json
 .prettierrc
+.prettierignore
 
 # test
 jest.config.js
