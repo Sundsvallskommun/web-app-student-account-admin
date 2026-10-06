@@ -40,10 +40,10 @@ import {
 } from '@config';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
-import { Profile } from './interfaces/profile.interface';
+import { Profile } from '@interfaces/profile.interface';
 import { join } from 'path';
-import { getPermissions, getRole } from './services/authorization.service';
-import { isValidUrl } from './utils/util';
+import { getPermissions, getRole } from '@services/authorization.service';
+import { isValidOrigin, safeRedirectUrl } from '@utils/util';
 
 const SessionStoreCreate = SESSION_MEMORY ? createMemoryStore(session) : createFileStore(session);
 const sessionTTL = 4 * 24 * 60 * 60;
@@ -165,10 +165,6 @@ class App {
     });
   }
 
-  public getServer() {
-    return this.app;
-  }
-
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(hpp());
@@ -205,7 +201,8 @@ class App {
       const successRedirect =
         (req.session.returnTo as string | undefined) || (req.query.successRedirect as string | undefined);
       const failureRedirect = req.query.failureRedirect as string | undefined;
-      const relayState = [successRedirect, failureRedirect].filter(Boolean).join(',');
+      const relayParts = [successRedirect, failureRedirect].map(url => (isValidOrigin(url) ? url : ''));
+      const relayState = relayParts.some(Boolean) ? relayParts.join(',') : '';
 
       passport.authenticate('saml', {
         failureRedirect: SAML_FAILURE_REDIRECT,
@@ -222,7 +219,7 @@ class App {
     this.app.get(`${BASE_URL_PREFIX}/saml/logout`, samlLimiter, (req, res, next) => {
       const successRedirect =
         (req.session.returnTo as string | undefined) || (req.query.successRedirect as string | undefined);
-      const redirectTo = isValidUrl(successRedirect) ? successRedirect : SAML_SUCCESS_REDIRECT;
+      const redirectTo = safeRedirectUrl(successRedirect, SAML_SUCCESS_REDIRECT);
       samlStrategy.logout(req as unknown as Parameters<typeof samlStrategy.logout>[0], () => {
         req.logout(err => {
           if (err) {
@@ -245,11 +242,11 @@ class App {
 
           const relayState = (req.query?.RelayState ?? req.body?.RelayState) as string | undefined;
           const [successUrl, failureUrl] = String(relayState ?? '').split(',');
-          const successRedirect = isValidUrl(successUrl) ? successUrl : SAML_SUCCESS_REDIRECT;
+          const successRedirect = safeRedirectUrl(successUrl, SAML_SUCCESS_REDIRECT);
           const failMessage = req.session?.messages?.[0];
 
           if (failMessage) {
-            const failureRedirect = new URL(isValidUrl(failureUrl) ? failureUrl : successRedirect);
+            const failureRedirect = new URL(safeRedirectUrl(failureUrl, successRedirect));
             failureRedirect.searchParams.set('failMessage', failMessage);
             return res.redirect(failureRedirect.toString());
           }
@@ -264,8 +261,8 @@ class App {
       bodyParser.urlencoded({ extended: false }),
       (req, res, next) => {
         const [successUrl, failureUrl] = String(req.body?.RelayState ?? '').split(',');
-        const successRedirect = isValidUrl(successUrl) ? successUrl : SAML_SUCCESS_REDIRECT;
-        const failureRedirect = new URL(isValidUrl(failureUrl) ? failureUrl : successRedirect);
+        const successRedirect = safeRedirectUrl(successUrl, SAML_SUCCESS_REDIRECT);
+        const failureRedirect = new URL(safeRedirectUrl(failureUrl, successRedirect));
 
         const redirectToFailure = (failMessage: string) => {
           failureRedirect.searchParams.set('failMessage', failMessage);
@@ -283,6 +280,11 @@ class App {
             if (!user) {
               logger.error(`SAML callback failed :: name=${info?.name} :: message=${info?.message}`);
               return redirectToFailure(info?.name || 'NO_USER');
+            }
+
+            if (!user.username) {
+              logger.error('SAML callback failed :: user could not be constructed');
+              return redirectToFailure('NO_USER');
             }
 
             req.login(user, loginErr => {
