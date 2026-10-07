@@ -17,9 +17,9 @@ export class EmployeeController {
   @Header('Content-Type', 'image/jpeg')
   @Header('Cross-Origin-Embedder-Policy', 'require-corp')
   @Header('Cross-Origin-Resource-Policy', 'cross-origin')
-  async getEmployeeImage(@Param('personId') personId: string, @QueryParam('width') width = 120): Promise<any> {
+  async getEmployeeImage(@Param('personId') personId: string, @QueryParam('width') width = 120): Promise<Buffer> {
     const url = `${this.apiBase}/${MUNICIPALITY_ID}/${personId}/personimage`;
-    const res = await this.apiService.get<any>({
+    const res = await this.apiService.get<Buffer>({
       url,
       responseType: 'arraybuffer',
       params: {

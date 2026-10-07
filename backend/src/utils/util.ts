@@ -1,4 +1,4 @@
-import { API_BASE_URL, BASE_URL_PREFIX } from '@config';
+import { API_BASE_URL, BASE_URL_PREFIX, ORIGIN } from '@config';
 /**
  * @method isEmpty
  * @param {String | Number | Object} value
@@ -65,4 +65,30 @@ export const isValidUrl = (value: unknown): boolean => {
   } catch {
     return false;
   }
+};
+
+const allowedOrigins = (): string[] =>
+  (ORIGIN ?? '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(origin => origin !== '')
+    .flatMap(origin => {
+      try {
+        return [new URL(origin).origin];
+      } catch {
+        return [];
+      }
+    });
+
+export const isValidOrigin = (value: unknown): boolean => {
+  if (!isValidUrl(value)) return false;
+  return allowedOrigins().includes(new URL(value as string).origin);
+};
+
+export const safeRedirectUrl = (candidate: unknown, fallback: string): string => {
+  if (!isValidUrl(candidate)) return fallback;
+  const url = new URL(candidate as string);
+  const origin = allowedOrigins().find(allowed => allowed === url.origin);
+  if (!origin) return fallback;
+  return `${origin}${url.pathname}${url.search}${url.hash}`;
 };
