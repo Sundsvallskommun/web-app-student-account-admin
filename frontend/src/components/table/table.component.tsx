@@ -6,16 +6,19 @@ import { apiURL } from '@utils/api-url';
 import { getInitials } from '@utils/get-initials';
 import { Edit, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import useSchoolStore from 'src/store/useSchoolStore.store';
+import useSchoolStore from '@store/useSchoolStore.store';
 
-const imageUrlToBase64 = async (url: string) => {
+const imageUrlToBase64 = async (url: string): Promise<string> => {
   const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) {
+    return '';
+  }
   const blob = await response.blob();
-  return new Promise((onSuccess, onError) => {
+  return new Promise<string>((onSuccess, onError) => {
     try {
       const reader = new FileReader();
       reader.onload = function () {
-        onSuccess(this.result);
+        onSuccess(typeof this.result === 'string' ? this.result : '');
       };
       reader.readAsDataURL(blob);
     } catch (e) {
@@ -26,8 +29,8 @@ const imageUrlToBase64 = async (url: string) => {
 
 const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<Record<string, string>> => {
   const imagePromises = data.map(async (pupil) => {
-    if (!prefetchedImages[pupil.personId] && pupil.personId) {
-      const base64Image = (await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`))) as string; // Pass the raw ArrayBuffer from the response
+    if (!(pupil.personId in prefetchedImages) && pupil.personId) {
+      const base64Image = await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`)).catch(() => '');
 
       return { [pupil.personId]: base64Image };
     }
@@ -98,7 +101,12 @@ export const Table: React.FunctionComponent<TableProps> = ({
       isShown: true,
       isColumnSortable: false,
       renderColumn: (value: string, obj: Pupil) => (
-        <Avatar imageUrl={prefetchedImages[obj.personId]} rounded initials={getInitials(value)} size="md" />
+        <Avatar
+          imageUrl={prefetchedImages[obj.personId] || undefined}
+          rounded
+          initials={getInitials(obj.displayname)}
+          size="md"
+        />
       ),
     },
     {
@@ -154,13 +162,16 @@ export const Table: React.FunctionComponent<TableProps> = ({
             label: 'Bild',
             isShown: true,
             isColumnSortable: false,
-            renderColumn: (value: string, obj: Pupil) => (
-              <img
-                style={{ display: 'inline-block', height: '100%' }}
-                src={prefetchedImages[obj.personId]}
-                alt="bild på even"
-              />
-            ),
+            renderColumn: (value: string, obj: Pupil) =>
+              prefetchedImages[obj.personId] ? (
+                <img
+                  style={{ display: 'inline-block', height: '100%' }}
+                  src={prefetchedImages[obj.personId]}
+                  alt="bild på elev"
+                />
+              ) : (
+                <span>{getInitials(obj.displayname)}</span>
+              ),
           }
         : x
     );
@@ -209,7 +220,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   const handleSavePupil = () => {
     handleCloseModal();
-    selectedClassId && fetchPupils(selectedClassId);
+    if (selectedClassId) fetchPupils(selectedClassId);
   };
 
   const deleteResource = async (user: ResourceData) => {

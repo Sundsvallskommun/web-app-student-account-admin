@@ -2,7 +2,7 @@ import { School } from '@interfaces/school';
 import { addResourceToSchool } from '@services/school.service';
 import { Button, FormLabel, Modal, TextField, useSnackbar, Select } from '@sk-web-gui/react';
 import { useEffect, useState } from 'react';
-import useSchoolStore from 'src/store/useSchoolStore.store';
+import useSchoolStore from '@store/useSchoolStore.store';
 
 export interface CreateResursModalProps {
   onClose: () => void;

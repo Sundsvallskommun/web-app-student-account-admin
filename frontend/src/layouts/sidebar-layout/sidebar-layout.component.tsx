@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import { Link, CookieConsent, Header, Footer } from '@sk-web-gui/react';
 import NextLink from 'next/link';
+import { useRouter } from 'next/router';
 import { useRef } from 'react';
 interface ISidebarLayout {
   title;
@@ -9,11 +10,12 @@ interface ISidebarLayout {
 }
 
 export default function SidebarLayout({ title, children }: ISidebarLayout) {
-  const initialFocus = useRef(null);
+  const initialFocus = useRef<HTMLAnchorElement>(null);
+  const router = useRouter();
 
   const setInitialFocus = () => {
     setTimeout(() => {
-      initialFocus.current && initialFocus.current.focus();
+      initialFocus.current?.focus();
     });
   };
 
@@ -24,16 +26,13 @@ export default function SidebarLayout({ title, children }: ISidebarLayout) {
         <meta name="description" content="Masterdata" />
       </Head>
 
-      <NextLink legacyBehavior={true} href="#content" passHref>
-        <a onClick={setInitialFocus} accessKey="s" className="next-link-a">
-          Hoppa till innehåll
-        </a>
+      <NextLink href="#content" onClick={setInitialFocus} accessKey="s" className="next-link-a">
+        Hoppa till innehåll
       </NextLink>
 
       <Header
         title={`Masterdata`}
-        // logoLinkOnClick={handleLogoClick}
-        LogoLinkWrapperComponent={<NextLink legacyBehavior={true} href={'/'} passHref />}
+        logoLinkOnClick={() => router.push('/')}
       />
 
       <div className="main-container flex-grow">

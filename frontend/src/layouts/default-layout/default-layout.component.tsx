@@ -4,14 +4,16 @@ import { useUserStore } from '@services/user-service/user-service';
 
 import Head from 'next/head';
 import NextLink from 'next/link';
+import { useRouter } from 'next/router';
 import { getInitials } from '@utils/get-initials';
 
 export default function DefaultLayout({ title, children }) {
-  const initialFocus = useRef(null);
+  const initialFocus = useRef<HTMLAnchorElement>(null);
+  const router = useRouter();
 
   const setInitialFocus = () => {
     setTimeout(() => {
-      initialFocus.current && initialFocus.current.focus();
+      initialFocus.current?.focus();
     });
   };
 
@@ -26,17 +28,11 @@ export default function DefaultLayout({ title, children }) {
         <meta name="description" content="Elevkontohantering" />
       </Head>
 
-      <NextLink legacyBehavior={true} href="#content" passHref>
-        <a onClick={setInitialFocus} accessKey="s" className="next-link-a">
-          Hoppa till innehåll
-        </a>
+      <NextLink href="#content" onClick={setInitialFocus} accessKey="s" className="next-link-a">
+        Hoppa till innehåll
       </NextLink>
 
-      <Header
-        title={`Kontohantering`}
-        subtitle="Elever och resurser"
-        LogoLinkWrapperComponent={<NextLink legacyBehavior={true} href={'/'} passHref />}
-      >
+      <Header title={`Kontohantering`} subtitle="Elever och resurser" logoLinkOnClick={() => router.push('/')}>
         <Avatar imageAlt="Avatar" imageUrl="" initials={userInitials} rounded />
       </Header>
 

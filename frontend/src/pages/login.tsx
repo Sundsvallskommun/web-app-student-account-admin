@@ -20,7 +20,7 @@ export default function Start() {
   const initalFocus = useRef(null);
   const setInitalFocus = () => {
     setTimeout(() => {
-      initalFocus.current && initalFocus.current.focus();
+      initalFocus.current?.focus();
     });
   };
 

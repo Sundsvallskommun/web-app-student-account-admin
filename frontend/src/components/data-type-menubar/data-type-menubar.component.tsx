@@ -1,6 +1,6 @@
 import { Pupil, ResourceData } from '@interfaces/school';
 import { useUserStore } from '@services/user-service/user-service';
-import { MenuBar } from '@sk-web-gui/react';
+import { NavigationBar } from '@sk-web-gui/react';
 import React from 'react';
 
 interface DataTypeMenuBarProps {
@@ -31,20 +31,20 @@ const DataTypeMenuBar: React.FC<DataTypeMenuBarProps> = ({
   })`;
 
   return (
-    <MenuBar color="vattjom" current={activeMenuIndex} showBackground={false}>
-      <MenuBar.Item>
+    <NavigationBar color="vattjom" current={activeMenuIndex} showBackground={false}>
+      <NavigationBar.Item>
         <button onClick={() => onMenuChange(0)} className="min-w-[12rem]">
           {pupilButtonText}
         </button>
-      </MenuBar.Item>
+      </NavigationBar.Item>
       {user.role === 'admin' ? (
-        <MenuBar.Item>
+        <NavigationBar.Item>
           <button onClick={() => onMenuChange(1)} className="min-w-[12rem]">
             {resourceButtonText}
           </button>
-        </MenuBar.Item>
+        </NavigationBar.Item>
       ) : null}
-    </MenuBar>
+    </NavigationBar>
   );
 };
 
