@@ -28,7 +28,7 @@ export default function DefaultLayout({ title, children }) {
         <meta name="description" content="Elevkontohantering" />
       </Head>
 
-      <NextLink href="#content" onClick={setInitialFocus} accessKey="s" className="next-link-a">
+      <NextLink href="#content" onClick={setInitialFocus} className="next-link-a">
         Hoppa till innehåll
       </NextLink>
 

@@ -50,7 +50,6 @@ export const Elevkontohantering: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
-  const [, setIsLoadingClasses] = useState(false);
   const [searchFieldTouched, setSearchFieldTouched] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
@@ -122,13 +121,7 @@ export const Elevkontohantering: React.FC = () => {
       resetSearch();
       setSelectedClassId('');
 
-      setIsLoadingClasses(true);
-
-      useSchoolStore
-        .getState()
-        .fetchClasses(selectedSchoolId)
-        .then(() => setIsLoadingClasses(false))
-        .catch(() => setIsLoadingClasses(false));
+      void useSchoolStore.getState().fetchClasses(selectedSchoolId);
 
       useSchoolStore
         .getState()

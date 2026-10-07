@@ -89,7 +89,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   useEffect(() => {
     if (isPupilType) {
-      getPrefetchedImages(isPrintMode ? data : pagedData);
+      void getPrefetchedImages(isPrintMode ? data : pagedData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPupilType, page, isPrintMode]);
@@ -220,7 +220,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   const handleSavePupil = () => {
     handleCloseModal();
-    if (selectedClassId) fetchPupils(selectedClassId);
+    if (selectedClassId) void fetchPupils(selectedClassId);
   };
 
   const deleteResource = async (user: ResourceData) => {
