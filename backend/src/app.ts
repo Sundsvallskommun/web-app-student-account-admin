@@ -8,6 +8,7 @@ import session from 'express-session';
 import createMemoryStore from 'memorystore';
 import createFileStore from 'session-file-store';
 import express from 'express';
+import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
@@ -39,20 +40,22 @@ import {
 } from '@config';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
-import { Profile } from './interfaces/profile.interface';
+import { Profile } from '@interfaces/profile.interface';
 import { join } from 'path';
-import { getPermissions, getRole } from './services/authorization.service';
-import { isValidUrl } from './utils/util';
+import { getPermissions, getRole } from '@services/authorization.service';
+import { isValidOrigin, safeRedirectUrl } from '@utils/util';
 
 const SessionStoreCreate = SESSION_MEMORY ? createMemoryStore(session) : createFileStore(session);
 const sessionTTL = 4 * 24 * 60 * 60;
 // NOTE: memory uses ms while file uses seconds
-const sessionStore = new SessionStoreCreate(SESSION_MEMORY ? { checkPeriod: sessionTTL * 1000 } : { sessionTTL, path: './data/sessions' });
+const sessionStore = new SessionStoreCreate(
+  SESSION_MEMORY ? { checkPeriod: sessionTTL * 1000 } : { sessionTTL, path: './data/sessions' },
+);
 
 passport.serializeUser(function (user, done) {
   done(null, user);
 });
-passport.deserializeUser(function (user, done) {
+passport.deserializeUser(function (user: Express.User, done) {
   done(null, user);
 });
 
@@ -77,7 +80,7 @@ const samlStrategy = new Strategy(
     wantAuthnResponseSigned: false,
     audience: false,
   },
-  async function (profile: Profile, done: VerifiedCallback) {
+  function (profile: Profile, done: VerifiedCallback) {
     if (!profile) {
       return done({
         name: 'SAML_MISSING_PROFILE',
@@ -90,7 +93,8 @@ const samlStrategy = new Strategy(
     // (A switch from Onegate to ADFS was done on august 6 2023 due to problems in MobilityGuard.)
     //
     // const { givenName, sn, email, groups } = profile;
-    const givenName = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ?? profile['givenname'];
+    const givenName =
+      profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ?? profile['givenname'];
     const surname = profile['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] ?? profile['surname'];
     const groups = profile['http://schemas.xmlsoap.org/claims/Group']?.join(',') ?? profile['groups'];
     const username = profile['uid'];
@@ -125,7 +129,7 @@ const samlStrategy = new Strategy(
       done(err);
     }
   },
-  async function (profile: Profile, done: VerifiedCallback) {
+  function (profile: Profile, done: VerifiedCallback) {
     return done(null, {});
   },
 );
@@ -136,7 +140,7 @@ class App {
   public port: string | number;
   public swaggerEnabled: boolean;
 
-  constructor(Controllers: Function[]) {
+  constructor(Controllers: NewableFunction[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = PORT || 3000;
@@ -161,10 +165,6 @@ class App {
     });
   }
 
-  public getServer() {
-    return this.app;
-  }
-
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(hpp());
@@ -173,6 +173,14 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser());
+
+    // Throttle the SAML endpoints (they trigger outbound IdP traffic and session writes).
+    // `trust proxy` makes the limiter key on the real client IP behind the reverse proxy.
+    const samlLimiter = rateLimit({
+      windowMs: 60 * 1000,
+      limit: 100,
+    });
+    this.app.set('trust proxy', 1);
 
     this.app.use(
       session({
@@ -187,25 +195,20 @@ class App {
     this.app.use(passport.session());
     passport.use('saml', samlStrategy);
 
-    this.app.get(
-      `${BASE_URL_PREFIX}/saml/login`,
-      (req, res, next) => {
-        if (req.session.returnTo) {
-          req.query.RelayState = req.session.returnTo;
-        } else if (req.query.successRedirect) {
-          req.query.RelayState = req.query.successRedirect;
-        }
-        if (req.query.failureRedirect) {
-          req.query.RelayState = `${req.query.RelayState},${req.query.failureRedirect}`;
-        }
-        next();
-      },
-      (req, res, next) => {
-        passport.authenticate('saml', {
-          failureRedirect: SAML_FAILURE_REDIRECT,
-        })(req, res, next);
-      },
-    );
+    // Express 5 exposes `req.query` as a read-only getter, so the RelayState can no longer be
+    // injected by mutating the query. It is passed to passport-saml through `additionalParams`.
+    this.app.get(`${BASE_URL_PREFIX}/saml/login`, samlLimiter, (req, res, next) => {
+      const successRedirect =
+        (req.session.returnTo as string | undefined) || (req.query.successRedirect as string | undefined);
+      const failureRedirect = req.query.failureRedirect as string | undefined;
+      const relayParts = [successRedirect, failureRedirect].map(url => (isValidOrigin(url) ? url : ''));
+      const relayState = relayParts.some(Boolean) ? relayParts.join(',') : '';
+
+      passport.authenticate('saml', {
+        failureRedirect: SAML_FAILURE_REDIRECT,
+        ...(relayState ? { additionalParams: { RelayState: relayState } } : {}),
+      })(req, res, next);
+    });
 
     this.app.get(`${BASE_URL_PREFIX}/saml/metadata`, (req, res) => {
       res.type('application/xml');
@@ -213,117 +216,91 @@ class App {
       res.status(200).send(metadata);
     });
 
+    this.app.get(`${BASE_URL_PREFIX}/saml/logout`, samlLimiter, (req, res, next) => {
+      const successRedirect =
+        (req.session.returnTo as string | undefined) || (req.query.successRedirect as string | undefined);
+      const redirectTo = safeRedirectUrl(successRedirect, SAML_SUCCESS_REDIRECT);
+      samlStrategy.logout(req as unknown as Parameters<typeof samlStrategy.logout>[0], () => {
+        req.logout(err => {
+          if (err) {
+            return next(err);
+          }
+          res.redirect(redirectTo);
+        });
+      });
+    });
+
     this.app.get(
-      `${BASE_URL_PREFIX}/saml/logout`,
+      `${BASE_URL_PREFIX}/saml/logout/callback`,
+      samlLimiter,
       bodyParser.urlencoded({ extended: false }),
       (req, res, next) => {
-        if (req.session.returnTo) {
-          req.query.RelayState = req.session.returnTo;
-        } else if (req.query.successRedirect) {
-          req.query.RelayState = req.query.successRedirect;
-        }
-        next();
-      },
-      (req, res, next) => {
-        const successRedirect = req.query.successRedirect;
-        samlStrategy.logout(req as any, () => {
-          req.logout(err => {
-            if (err) {
-              return next(err);
-            }
-            res.redirect(successRedirect as string);
-          });
+        req.logout(err => {
+          if (err) {
+            return next(err);
+          }
+
+          const relayState = (req.query?.RelayState ?? req.body?.RelayState) as string | undefined;
+          const [successUrl, failureUrl] = String(relayState ?? '').split(',');
+          const successRedirect = safeRedirectUrl(successUrl, SAML_SUCCESS_REDIRECT);
+          const failMessage = req.session?.messages?.[0];
+
+          if (failMessage) {
+            const failureRedirect = new URL(safeRedirectUrl(failureUrl, successRedirect));
+            failureRedirect.searchParams.set('failMessage', failMessage);
+            return res.redirect(failureRedirect.toString());
+          }
+          res.redirect(successRedirect);
         });
       },
     );
 
-    this.app.get(`${BASE_URL_PREFIX}/saml/logout/callback`, bodyParser.urlencoded({ extended: false }), (req, res, next) => {
-      req.logout(err => {
-        if (err) {
-          return next(err);
-        }
+    this.app.post(
+      `${BASE_URL_PREFIX}/saml/login/callback`,
+      samlLimiter,
+      bodyParser.urlencoded({ extended: false }),
+      (req, res, next) => {
+        const [successUrl, failureUrl] = String(req.body?.RelayState ?? '').split(',');
+        const successRedirect = safeRedirectUrl(successUrl, SAML_SUCCESS_REDIRECT);
+        const failureRedirect = new URL(safeRedirectUrl(failureUrl, successRedirect));
 
-        let successRedirect: URL, failureRedirect: URL;
-        const relayStateRaw = req?.body?.RelayState;
-        const urls = typeof relayStateRaw === 'string' ? relayStateRaw.split(',') : [];
-
-        if (isValidUrl(urls[0])) {
-          successRedirect = new URL(urls[0]);
-        } else {
-          successRedirect = new URL(SAML_SUCCESS_REDIRECT);
-        }
-
-        if (isValidUrl(urls[1])) {
-          failureRedirect = new URL(urls[1]);
-        } else {
-          failureRedirect = successRedirect;
-        }
-
-        const queries = new URLSearchParams(failureRedirect?.searchParams);
-
-        if (req.session.messages?.length > 0) {
-          queries.append('failMessage', req.session.messages[0]);
-        } else {
-          queries.append('failMessage', 'SAML_UNKNOWN_ERROR');
-        }
-
-        if (failureRedirect) {
+        const redirectToFailure = (failMessage: string) => {
+          failureRedirect.searchParams.set('failMessage', failMessage);
           res.redirect(failureRedirect.toString());
-        } else {
-          res.redirect(successRedirect.toString());
-        }
-      });
-    });
+        };
 
-    this.app.post(`${BASE_URL_PREFIX}/saml/login/callback`, bodyParser.urlencoded({ extended: false }), (req, res, next) => {
-      let successRedirect: URL, failureRedirect: URL;
-
-      const relayStateRaw = req?.body?.RelayState;
-      const urls = typeof relayStateRaw === 'string' ? relayStateRaw.split(',') : [];
-
-      if (isValidUrl(urls[0])) {
-        successRedirect = new URL(urls[0]);
-      } else {
-        successRedirect = new URL(SAML_SUCCESS_REDIRECT);
-      }
-
-      if (isValidUrl(urls[1])) {
-        failureRedirect = new URL(urls[1]);
-      } else {
-        failureRedirect = successRedirect;
-      }
-
-      passport.authenticate('saml', (err, user) => {
-        if (err) {
-          const queries = new URLSearchParams(failureRedirect?.searchParams);
-          if (err?.name) {
-            queries.append('failMessage', err.name);
-          } else {
-            queries.append('failMessage', 'SAML_UNKNOWN_ERROR');
-          }
-          failureRedirect.search = queries.toString();
-          res.redirect(failureRedirect.toString());
-        } else if (!user) {
-          const failMessage = new URLSearchParams(failureRedirect?.searchParams);
-          failMessage.append('failMessage', 'NO_USER');
-          failureRedirect.search = failMessage.toString();
-          res.redirect(failureRedirect.toString());
-        } else {
-          req.login(user, loginErr => {
-            if (loginErr) {
-              const failMessage = new URLSearchParams(failureRedirect?.searchParams);
-              failMessage.append('failMessage', 'SAML_UNKNOWN_ERROR');
-              failureRedirect.search = failMessage.toString();
-              res.redirect(failureRedirect.toString());
+        passport.authenticate(
+          'saml',
+          (err: Error | null, user: Express.User | false | null, info?: { name?: string; message?: string }) => {
+            if (err) {
+              logger.error(`SAML callback error :: name=${err?.name} :: message=${err?.message}`);
+              return redirectToFailure(err?.name || 'SAML_UNKNOWN_ERROR');
             }
-            return res.redirect(successRedirect.toString());
-          });
-        }
-      })(req, res, next);
-    });
+
+            if (!user) {
+              logger.error(`SAML callback failed :: name=${info?.name} :: message=${info?.message}`);
+              return redirectToFailure(info?.name || 'NO_USER');
+            }
+
+            if (!user.username) {
+              logger.error('SAML callback failed :: user could not be constructed');
+              return redirectToFailure('NO_USER');
+            }
+
+            req.login(user, loginErr => {
+              if (loginErr) {
+                logger.error(`SAML req.login error :: ${loginErr?.message ?? loginErr}`);
+                return redirectToFailure('SAML_UNKNOWN_ERROR');
+              }
+              return res.redirect(successRedirect);
+            });
+          },
+        )(req, res, next);
+      },
+    );
   }
 
-  private initializeRoutes(controllers: Function[]) {
+  private initializeRoutes(controllers: NewableFunction[]) {
     useExpressServer(this.app, {
       routePrefix: BASE_URL_PREFIX,
       cors: {
@@ -336,7 +313,7 @@ class App {
     });
   }
 
-  private initializeSwagger(controllers: Function[]) {
+  private initializeSwagger(controllers: NewableFunction[]) {
     const schemas = validationMetadatasToSchemas({
       classTransformerMetadataStorage: defaultMetadataStorage,
       refPointerPrefix: '#/components/schemas/',
@@ -346,10 +323,13 @@ class App {
       controllers: controllers,
     };
 
+    type OpenApiComponents = NonNullable<Parameters<typeof routingControllersToSpec>[2]>['components'];
+    type SchemasMap = NonNullable<NonNullable<OpenApiComponents>['schemas']>;
+
     const storage = getMetadataArgsStorage();
     const spec = routingControllersToSpec(storage, routingControllersOptions, {
       components: {
-        schemas: schemas as { [schema: string]: unknown },
+        schemas: schemas as unknown as SchemasMap,
         securitySchemes: {
           basicAuth: {
             scheme: 'basic',

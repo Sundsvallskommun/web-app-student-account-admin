@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 export { APIS, getApiBase } from './api-config';
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`, quiet: true });
 
 export const CREDENTIALS = process.env.CREDENTIALS === 'true';
 export const SWAGGER_ENABLED = process.env.SWAGGER_ENABLED === 'true';

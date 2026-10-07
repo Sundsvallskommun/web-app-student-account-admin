@@ -1,5 +1,4 @@
 import { ClientUser } from '@/interfaces/users.interface';
-import { Session } from 'express-session';
 
 interface Engagement {
   organizationName: string;
@@ -12,7 +11,7 @@ declare module 'express-session' {
     returnTo?: string;
     user?: ClientUser;
     representing?: Engagement;
-    passport?: any;
+    passport?: { user?: ClientUser };
     representingChoices?: Engagement[];
     messages: string[];
   }
