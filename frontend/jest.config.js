@@ -17,7 +17,7 @@ module.exports = {
   moduleNameMapper: {
     // Handle CSS imports (with CSS modules)
     // https://jestjs.io/docs/webpack#mocking-css-modules
-    '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
+    [String.raw`^.+\.module\.(css|sass|scss)$`]: 'identity-obj-proxy',
 
     // Module aliases, kept in sync with tsconfig.json "paths"
     '@components/(.*)$': '<rootDir>/src/components/$1',
@@ -35,14 +35,14 @@ module.exports = {
   transform: {
     // Use babel-jest to transpile tests with the next/babel preset
     // https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+    [String.raw`^.+\.(js|jsx|ts|tsx)$`]: ['babel-jest', { presets: ['next/babel'] }],
     // Handle image imports
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+    [String.raw`\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$`]:
       '<rootDir>/.jest/fileTransformer.js',
   },
   transformIgnorePatterns: [
     // '/node_modules/',
-    '^.+\\.module\\.(css|sass|scss)$',
+    String.raw`^.+\.module\.(css|sass|scss)$`,
   ],
-  testRegex: '(/__tests__/.*|(\\.|/)(test))\\.[jt]sx?$',
+  testRegex: String.raw`(/__tests__/.*|(\.|/)(test))\.[jt]sx?$`,
 };
