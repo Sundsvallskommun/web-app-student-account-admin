@@ -9,7 +9,7 @@ import { FileIcon, Plus } from 'lucide-react';
 
 import { Class, Pupil, ResourceData, School } from '@interfaces/school';
 import { searchPupils, searchResources } from '@services/school.service';
-import useSchoolStore from 'src/store/useSchoolStore.store';
+import useSchoolStore from '@store/useSchoolStore.store';
 
 import debounce from 'lodash/debounce';
 
@@ -50,7 +50,6 @@ export const Elevkontohantering: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
-  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   const [searchFieldTouched, setSearchFieldTouched] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
@@ -58,6 +57,12 @@ export const Elevkontohantering: React.FC = () => {
 
   const resetClassesAndPupils = useSchoolStore((s) => s.resetClassesAndPupils);
   const resetResources = useSchoolStore((s) => s.resetResources);
+  const schools = useSchoolStore((state) => state.schools) as School[];
+  const classes = useSchoolStore((state) => state.classes) as Class[];
+  const pupils = useSchoolStore((state) => state.pupils) as Pupil[];
+  const resources = useSchoolStore((state) => state.resources) as ResourceData[];
+
+  const activeMenuIndexRef = useRef(activeMenuIndex);
 
   const resetSearch = () => {
     setSearchQuery('');
@@ -84,9 +89,10 @@ export const Elevkontohantering: React.FC = () => {
       }
     }
   };
+  // The debounced function only reads activeMenuIndexRef when lodash invokes it later (never during
+  // render); the react-hooks/refs rule cannot see through debounce() and flags it anyway.
+  // eslint-disable-next-line react-hooks/refs
   const debouncedSearch = useMemo(() => debounce(debouncedSearchFunction, 500), []);
-
-  const activeMenuIndexRef = useRef(activeMenuIndex);
 
   useEffect(() => {
     activeMenuIndexRef.current = activeMenuIndex;
@@ -115,13 +121,7 @@ export const Elevkontohantering: React.FC = () => {
       resetSearch();
       setSelectedClassId('');
 
-      setIsLoadingClasses(true);
-
-      useSchoolStore
-        .getState()
-        .fetchClasses(selectedSchoolId)
-        .then(() => setIsLoadingClasses(false))
-        .catch(() => setIsLoadingClasses(false));
+      void useSchoolStore.getState().fetchClasses(selectedSchoolId);
 
       useSchoolStore
         .getState()
@@ -132,6 +132,7 @@ export const Elevkontohantering: React.FC = () => {
         })
         .catch((error) => console.error('Error fetching resources:', error));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSchoolId]);
 
   useEffect(() => {
@@ -145,11 +146,6 @@ export const Elevkontohantering: React.FC = () => {
         .catch(() => setIsLoading(false));
     }
   }, [selectedClassId]);
-
-  const schools = useSchoolStore((state) => state.schools) as School[];
-  const classes = useSchoolStore((state) => state.classes) as Class[];
-  const pupils = useSchoolStore((state) => state.pupils) as Pupil[];
-  const resources = useSchoolStore((state) => state.resources) as ResourceData[];
 
   const transformedPupils = useMemo(
     () =>
@@ -259,6 +255,7 @@ export const Elevkontohantering: React.FC = () => {
       setResourceSearchResults([]);
     }
     setSearchFieldTouched(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onMenuChangeHandler = (newIndex: number) => {

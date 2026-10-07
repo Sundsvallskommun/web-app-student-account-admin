@@ -6,30 +6,38 @@ import LoaderFullScreen from '@components/loader/loader-fullscreen';
 import { appURL } from '@utils/app-url';
 import { apiURL } from '@utils/api-url';
 
+const toSafeRelativePath = (value: unknown): string => {
+  if (typeof value !== 'string' || !/^\/(?![/\\])[^@:\\]*$/.test(value)) return '';
+  return /\/login|\/logout/.test(value) ? '' : value;
+};
+
+const toSafeFailMessage = (value: string | null): string =>
+  value && /^[A-Za-z0-9_ -]{1,100}$/.test(value) ? value : '';
+
 export default function Start() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
   const [mounted, setMounted] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
-  const isLoggedOut = params.get('loggedout') === '';
-  const failMessage = params.get('failMessage');
+  const isLoggedOut = params.has('loggedout');
+  const failMessage = toSafeFailMessage(params.get('failMessage'));
   // Turn on/off automatic login
   const autoLogin = true;
 
   const initalFocus = useRef(null);
   const setInitalFocus = () => {
     setTimeout(() => {
-      initalFocus.current && initalFocus.current.focus();
+      initalFocus.current?.focus();
     });
   };
 
   const onLogin = () => {
-    const path = router.query.path || new URLSearchParams(window.location.search).get('path') || '';
+    const path = toSafeRelativePath(new URLSearchParams(window.location.search).get('path'));
 
     const url = new URL(apiURL('/saml/login'));
     const queries = new URLSearchParams({
-      successRedirect: `${appURL(path as string)}`,
+      successRedirect: `${appURL(path)}`,
       failureRedirect: `${appURL()}/login`,
     });
     url.search = queries.toString();
