@@ -37,5 +37,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: '/((?!api|napi|static|.*\\..*|_next).*)',
+  matcher: '/((?!api|napi|static|.*[.].*|_next).*)',
 };

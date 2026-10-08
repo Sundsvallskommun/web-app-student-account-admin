@@ -13,7 +13,7 @@ const AppContext = createContext<AppContextInterface>({
   setDefaults: () => ({}),
 });
 
-export function AppWrapper({ children }: { children: ReactNode }) {
+export function AppWrapper({ children }: Readonly<{ children: ReactNode }>) {
   const contextDefaults = {
     isCookieConsentOpen: true,
   };
