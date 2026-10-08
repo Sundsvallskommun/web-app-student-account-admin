@@ -10,7 +10,7 @@ module.exports = {
   coverageProvider: 'v8',
   collectCoverageFrom: [
     '<rootDir>/src/services/**/*.{js,jsx,ts,tsx}',
-    '<rootDir>/src/pages/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/app/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/components/**/*.{js,jsx,ts,tsx}',
     '!**/__unused__/**',
   ],
@@ -20,6 +20,7 @@ module.exports = {
     [String.raw`^.+\.module\.(css|sass|scss)$`]: 'identity-obj-proxy',
 
     // Module aliases, kept in sync with tsconfig.json "paths"
+    '@app/(.*)$': '<rootDir>/src/app/$1',
     '@components/(.*)$': '<rootDir>/src/components/$1',
     '@interfaces/(.*)$': '<rootDir>/src/interfaces/$1',
     '@layouts/(.*)$': '<rootDir>/src/layouts/$1',

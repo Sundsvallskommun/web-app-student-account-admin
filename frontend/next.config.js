@@ -23,15 +23,14 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 module.exports = withBundleAnalyzer({
   output: 'standalone',
-  i18n: {
-    locales: ['sv'],
-    defaultLocale: 'sv',
-  },
   images: {
     remotePatterns: process.env.DOMAIN_NAME ? [{ protocol: 'https', hostname: process.env.DOMAIN_NAME }] : [],
     formats: ['image/avif', 'image/webp'],
   },
   basePath: process.env.BASE_PATH,
+  experimental: {
+    optimizePackageImports: ['@sk-web-gui/core', '@sk-web-gui/react', 'lodash'],
+  },
   turbopack: {
     root: __dirname,
   },

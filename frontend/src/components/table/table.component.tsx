@@ -27,7 +27,10 @@ const imageUrlToBase64 = async (url: string): Promise<string> => {
   });
 };
 
-const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<Record<string, string>> => {
+const fetchPrefetchedImages = async (
+  data: Pupil[],
+  prefetchedImages: Record<string, string>
+): Promise<Record<string, string>> => {
   const imagePromises = data.map(async (pupil) => {
     if (!(pupil.personId in prefetchedImages) && pupil.personId) {
       const base64Image = await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`)).catch(() => '');
@@ -40,15 +43,13 @@ const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<R
   const resolvedImages = await Promise.all(imagePromises);
 
   // Merge all objects into a single object
-  return resolvedImages.reduce(
-    (acc, curr) => {
-      if (curr) {
-        Object.assign(acc, curr);
-      }
-      return acc;
-    },
-    prefetchedImages as Record<string, string>
-  );
+  const merged: Record<string, string> = { ...prefetchedImages };
+  for (const curr of resolvedImages) {
+    if (curr) {
+      Object.assign(merged, curr);
+    }
+  }
+  return merged;
 };
 
 interface TableProps {
@@ -224,6 +225,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   };
 
   const deleteResource = async (user: ResourceData) => {
+    if (!selectedSchoolId) return;
     const confirmationTitle = 'Ta bort resurs';
     const confirmationMessage = (
       <>
