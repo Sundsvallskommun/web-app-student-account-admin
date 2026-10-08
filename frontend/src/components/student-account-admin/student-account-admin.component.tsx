@@ -1,3 +1,5 @@
+'use client';
+
 import { Table } from '@components/table/table.component';
 import DefaultLayout from '@layouts/default-layout/default-layout.component';
 import { Button, Divider, FormLabel, Select } from '@sk-web-gui/react';
@@ -41,7 +43,7 @@ function fitImage(targetWidth, targetHeight, imageWidth, imageHeight) {
   };
 }
 
-export const Elevkontohantering: React.FC = () => {
+export const StudentAccountAdmin: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [pupilSearchResults, setPupilSearchResults] = useState<Pupil[]>([]);
   const [resourceSearchResults, setResourceSearchResults] = useState<ResourceData[]>([]);
@@ -50,6 +52,7 @@ export const Elevkontohantering: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   const [searchFieldTouched, setSearchFieldTouched] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [selectedSchoolName, setSelectedSchoolName] = useState<string>('');
@@ -61,6 +64,7 @@ export const Elevkontohantering: React.FC = () => {
   const classes = useSchoolStore((state) => state.classes) as Class[];
   const pupils = useSchoolStore((state) => state.pupils) as Pupil[];
   const resources = useSchoolStore((state) => state.resources) as ResourceData[];
+  const isLoadingResources = useSchoolStore((state) => state.isLoadingResources);
 
   const activeMenuIndexRef = useRef(activeMenuIndex);
 
@@ -121,7 +125,12 @@ export const Elevkontohantering: React.FC = () => {
       resetSearch();
       setSelectedClassId('');
 
-      void useSchoolStore.getState().fetchClasses(selectedSchoolId);
+      setIsLoadingClasses(true);
+      useSchoolStore
+        .getState()
+        .fetchClasses(selectedSchoolId)
+        .then(() => setIsLoadingClasses(false))
+        .catch(() => setIsLoadingClasses(false));
 
       useSchoolStore
         .getState()
@@ -264,7 +273,7 @@ export const Elevkontohantering: React.FC = () => {
   };
 
   return (
-    <DefaultLayout title={`Elevkontohantering`}>
+    <DefaultLayout>
       <div className="flex items-center justify-between my-24">
         <DataTypeMenuBar
           activeMenuIndex={activeMenuIndex}
@@ -310,13 +319,15 @@ export const Elevkontohantering: React.FC = () => {
             <Select
               id="school"
               aria-label="Välj skola"
-              className="cursor-pointer w-[33rem] mt-8  bg-custom-gray"
+              className="cursor-pointer w-[33rem] mt-8 bg-custom-gray"
               value={selectedSchoolId}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSchoolId(e.target.value)}
               onClick={() => resetSearch()}
+              readOnly={isLoadingSchools}
+              aria-busy={isLoadingSchools}
             >
               <Select.Option disabled value="">
-                - Välj skola -
+                {isLoadingSchools ? 'Laddar skolor...' : '- Välj skola -'}
               </Select.Option>
               {schools
                 .filter((school) => school.schoolId !== '00000000-0000-0000-0000-000000000000') // Filter out the placeholder from the API
@@ -333,18 +344,18 @@ export const Elevkontohantering: React.FC = () => {
               <Select
                 id="class"
                 aria-label="Välj klass"
-                className={`w-[33rem] mt-8 ${
-                  !selectedSchoolId || isLoadingSchools ? 'cursor-not-allowed' : 'cursor-pointer'
-                }`}
+                className={`w-[33rem] mt-8 ${!selectedSchoolId ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 value={selectedSchoolId ? selectedClassId || '' : ''}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClassId(e.target.value)}
                 onClick={() => resetSearch()}
-                disabled={!selectedSchoolId || isLoadingSchools}
+                disabled={!selectedSchoolId}
+                readOnly={isLoadingSchools || isLoadingClasses}
+                aria-busy={isLoadingClasses}
               >
                 {selectedSchoolId ? (
                   <>
                     <Select.Option disabled value="">
-                      - Välj klass -
+                      {isLoadingClasses ? 'Laddar klasser...' : '- Välj klass -'}
                     </Select.Option>
                     {classes
                       ?.filter((classItem) => classItem.groupId !== '00000000-0000-0000-0000-000000000000')
@@ -413,7 +424,9 @@ export const Elevkontohantering: React.FC = () => {
             </div>
           )
         ) : activeMenuIndex === 1 ? (
-          selectedSchoolId ? (
+          isLoadingResources ? (
+            <div className="font-bold">Laddar resurser...</div>
+          ) : selectedSchoolId ? (
             resources.length > 0 ? (
               <Table
                 data={resources}
@@ -445,4 +458,4 @@ export const Elevkontohantering: React.FC = () => {
   );
 };
 
-export default Elevkontohantering;
+export default StudentAccountAdmin;

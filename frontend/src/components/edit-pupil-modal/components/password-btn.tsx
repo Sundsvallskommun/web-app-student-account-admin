@@ -33,7 +33,7 @@ const PasswordBtn = ({ setPupilData, setHasChanges }: PasswordBtnProps) => {
           className: 'mr-[7rem]',
         });
       } else {
-        setPupilData((prev: Pupil) => ({ ...prev, password: data }));
+        setPupilData((prev) => (prev ? { ...prev, password: data ?? '' } : prev));
         setHasChanges(true);
       }
     }

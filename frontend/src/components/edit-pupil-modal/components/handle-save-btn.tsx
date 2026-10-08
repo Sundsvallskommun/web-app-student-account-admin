@@ -21,7 +21,7 @@ const HandleSaveBtn = ({
   const snackbar = useSnackbar();
 
   const handleSave = async () => {
-    const payload = {
+    const payload: Parameters<typeof updatePupil>[0] = {
       pupilLoginName: updatedPupil.loginname,
       isEnabled: updatedPupil.isEnabled,
       displayname: updatedPupil.displayname,

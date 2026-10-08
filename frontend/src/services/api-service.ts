@@ -1,36 +1,28 @@
 import axios from 'axios';
-import Router from 'next/router';
 import { apiURL } from '@utils/api-url';
-
-export interface Data {
-  error?: string;
-}
 
 export interface ApiResponse<T> {
   data: T;
   message: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let isChangingRoute = false;
-let isRedirectingToLogin = false;
+let navigate: ((path: string) => void) | null = null;
 
-Router.events.on('routeChangeStart', () => {
-  isChangingRoute = true;
-});
-
-Router.events.on('routeChangeComplete', (route) => {
-  isRedirectingToLogin = false;
-  isChangingRoute = false;
-  if (route === '/login') {
-    isRedirectingToLogin = false;
-  }
-});
+export const registerNavigator = (fn: (path: string) => void) => {
+  navigate = fn;
+};
 
 export const handleError = (error) => {
-  if (error.response.status === 401 && Router.pathname !== '/login' && !isRedirectingToLogin) {
-    isRedirectingToLogin = true;
-    Router.push('/login');
+  if (typeof window === 'undefined') {
+    throw error;
+  }
+  const currentPath = window.location.pathname;
+  if (error?.response?.status === 401 && !currentPath.includes('login')) {
+    navigate?.(
+      `/login?path=${encodeURIComponent(currentPath)}&failMessage=${encodeURIComponent(
+        error.response?.data?.message ?? 'NOT_AUTHORIZED'
+      )}`
+    );
   }
 
   throw error;
