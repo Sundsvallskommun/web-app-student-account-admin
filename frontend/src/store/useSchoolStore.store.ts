@@ -26,7 +26,7 @@ export const useSchoolStore = create<SchoolState>((set) => ({
   classes: [],
   pupils: [],
   resources: [],
-  isLoadingResources: null,
+  isLoadingResources: false,
 
   fetchSchools: async () => {
     try {

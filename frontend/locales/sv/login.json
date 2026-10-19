@@ -1,0 +1,11 @@
+{
+  "title": "Elevkontohantering",
+  "errors": {
+    "NOT_AUTHORIZED": "Inte inloggad",
+    "NO_USER": "Misslyckades att konfigurera användare",
+    "SAML_MISSING_PROFILE": "Användarprofil saknas",
+    "SAML_MISSING_ATTRIBUTES": "Användaren saknar rätt attribut",
+    "SAML_UNKNOWN_ERROR": "Ett okänt fel uppstod vid inloggning",
+    "UNKNOWN": "Inloggningen misslyckades"
+  }
+}

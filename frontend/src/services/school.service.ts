@@ -83,9 +83,9 @@ export const generatePupilPassword = async (): Promise<{ data?: string; message?
 
 export const updatePupil = async (pupilData: {
   pupilLoginName: string;
-  isEnabled: boolean;
-  displayname: string;
-  password: string;
+  isEnabled?: boolean;
+  displayname?: string;
+  password?: string;
 }): Promise<{ data?: string; message: string; error?: Error }> => {
   try {
     const pupildataBody = {
