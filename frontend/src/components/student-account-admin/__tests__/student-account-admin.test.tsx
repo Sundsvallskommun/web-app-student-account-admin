@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import StudentAccountAdmin from '../student-account-admin.component';
 
-jest.mock('jspdf', () => ({ __esModule: true, default: jest.fn() }));
-jest.mock('jspdf-autotable', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 const mockFetchSchools = jest.fn(() => new Promise<void>(() => undefined)); // never resolves

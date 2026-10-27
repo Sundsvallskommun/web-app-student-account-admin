@@ -4,11 +4,10 @@ import DefaultLayout from '@layouts/default-layout/default-layout.component';
 import { Button, Divider } from '@sk-web-gui/react';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { FileIcon, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { Class, Pupil, ResourceData, School } from '@interfaces/school';
 import useSchoolStore from '@store/useSchoolStore.store';
-import { generatePupilPdf } from '@utils/generate-pupil-pdf';
 
 import CreateResursModal from '@components/create-resurs-modal/create-resurs-modal.component';
 import DataTypeMenuBar from '@components/data-type-menubar/data-type-menubar.component';
@@ -20,10 +19,6 @@ import { useAccountSearch } from './use-account-search.hook';
 
 const isRealSchoolId = (schoolId: string) => Boolean(schoolId) && schoolId !== PLACEHOLDER_ID;
 
-/** Heading for the PDF when a whole class is exported; null when the table holds search results. */
-const getExportTitle = (hasSearchResults: boolean, school?: School, schoolClass?: Class) =>
-  !hasSearchResults && school && schoolClass ? `${school.name} klass ${schoolClass.name}` : null;
-
 export const StudentAccountAdmin: React.FC = () => {
   const [activeMenuIndex, setActiveMenuIndex] = useState<number>(0);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
@@ -32,7 +27,6 @@ export const StudentAccountAdmin: React.FC = () => {
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
   const [isLoadingClasses, setIsLoadingClasses] = useState(false);
   const [searchFieldTouched, setSearchFieldTouched] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isCreateResursModalOpen, setCreateResursModalOpen] = useState<boolean>(false);
 
   const resetClassesAndPupils = useSchoolStore((s) => s.resetClassesAndPupils);
@@ -109,17 +103,6 @@ export const StudentAccountAdmin: React.FC = () => {
     [pupils]
   );
 
-  const generatePDFTable = () => {
-    setIsGeneratingPDF(true);
-    // Give the table a render pass in print mode before jsPDF reads it from the DOM
-    setTimeout(() => {
-      const selectedSchool = schools.find((school) => school.schoolId === selectedSchoolId);
-      const selectedClass = classes.find((c) => c.groupId === selectedClassId);
-      generatePupilPdf(getExportTitle(pupilSearchResults.length > 0, selectedSchool, selectedClass));
-      setIsGeneratingPDF(false);
-    }, 250);
-  };
-
   const onSearchChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     resetClassesAndPupils();
     resetResources();
@@ -147,20 +130,7 @@ export const StudentAccountAdmin: React.FC = () => {
           pupilSearchResults={pupilSearchResults}
           resourceSearchResults={resourceSearchResults}
         />
-        {isPupilsTab ? (
-          <Button
-            variant="secondary"
-            type="button"
-            size="lg"
-            aria-label="Generera PDF"
-            disabled={isGeneratingPDF}
-            loading={isGeneratingPDF}
-            onClick={() => generatePDFTable()}
-          >
-            <FileIcon />
-            Visa som PDF
-          </Button>
-        ) : (
+        {!isPupilsTab && (
           <Button
             onClick={() => setCreateResursModalOpen(true)}
             aria-label="Generera ny resurs"
@@ -206,7 +176,6 @@ export const StudentAccountAdmin: React.FC = () => {
           pupils={transformedPupils}
           resources={resources}
           isLoadingResources={isLoadingResources}
-          isPrintMode={isGeneratingPDF}
           selectedSchoolId={selectedSchoolId}
           selectedClassId={selectedClassId}
           selectedSchoolName={selectedSchoolName}

@@ -55,7 +55,6 @@ const fetchPrefetchedImages = async (
 interface TableProps {
   data: (Pupil | ResourceData)[];
   activeMenuIndex: number;
-  isPrintMode?: boolean;
   selectedSchoolName: string;
   selectedSchoolId?: string;
   selectedClassId?: string;
@@ -64,7 +63,6 @@ interface TableProps {
 export const Table: React.FunctionComponent<TableProps> = ({
   data,
   activeMenuIndex,
-  isPrintMode,
   selectedSchoolId,
   selectedClassId,
 }) => {
@@ -73,7 +71,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const [prefetchedImages, setPrefetchedImages] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
 
-  const pageSize = isPrintMode ? 1000 : 10;
+  const pageSize = 10;
   const pagedData = data.slice((page - 1) * pageSize, page * pageSize);
 
   const { showConfirmation } = useConfirm();
@@ -90,10 +88,10 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   useEffect(() => {
     if (isPupilType) {
-      void getPrefetchedImages(isPrintMode ? data : pagedData);
+      void getPrefetchedImages(pagedData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPupilType, page, isPrintMode]);
+  }, [isPupilType, page]);
 
   const studentHeaders: AutoTableHeader[] = [
     {
@@ -119,7 +117,6 @@ export const Table: React.FunctionComponent<TableProps> = ({
     },
     { property: 'personNumber', label: 'Född datum', isShown: true, isColumnSortable: true },
     { property: 'loginname', label: 'Användarnamn', isShown: true, isColumnSortable: true },
-    ...(isPrintMode ? [{ property: 'password', label: 'Lösenord', isShown: true, isColumnSortable: false }] : []),
     { property: 'name', label: 'Skola', isShown: true, isColumnSortable: true },
     { property: 'className', label: 'Klass', isShown: true, isColumnSortable: true },
     {
@@ -144,38 +141,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
       ),
       isColumnSortable: false,
     },
-  ]
-    .filter((x) => {
-      if (isPrintMode) {
-        if (['image', 'displayname', 'loginname', 'password'].includes(x.property)) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
-    })
-    .map((x) =>
-      x.property === 'image' && isPrintMode
-        ? {
-            property: 'image',
-            label: 'Bild',
-            isShown: true,
-            isColumnSortable: false,
-            renderColumn: (value: string, obj: Pupil) =>
-              prefetchedImages[obj.personId] ? (
-                <img
-                  style={{ display: 'inline-block', height: '100%' }}
-                  src={prefetchedImages[obj.personId]}
-                  alt="bild på elev"
-                />
-              ) : (
-                <span>{getInitials(obj.displayname)}</span>
-              ),
-          }
-        : x
-    );
+  ];
 
   const resursHeaders: AutoTableHeader[] = [
     {
@@ -262,14 +228,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   };
 
   return (
-    <div
-      role="main"
-      className="mt-6"
-      id={isPrintMode ? 'table-to-export' : ''}
-      style={isPrintMode ? { display: 'none' } : {}}
-      aria-live="polite"
-      aria-atomic="true"
-    >
+    <div role="main" className="mt-6" aria-live="polite" aria-atomic="true">
       {data && data.length > 0 && (
         <AutoTable
           background={true}
