@@ -228,7 +228,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   };
 
   return (
-    <div role="main" className="mt-6" aria-live="polite" aria-atomic="true">
+    <div className="mt-6" aria-live="polite" aria-atomic="true">
       {data && data.length > 0 && (
         <AutoTable
           background={true}
