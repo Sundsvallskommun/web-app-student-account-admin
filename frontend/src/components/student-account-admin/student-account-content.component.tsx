@@ -14,7 +14,6 @@ interface SearchResultsProps {
   searchFieldTouched: boolean;
   pupilSearchResults: Pupil[];
   resourceSearchResults: ResourceData[];
-  isPrintMode: boolean;
   selectedSchoolName: string;
 }
 
@@ -24,7 +23,6 @@ const SearchResults = ({
   searchFieldTouched,
   pupilSearchResults,
   resourceSearchResults,
-  isPrintMode,
   selectedSchoolName,
 }: Readonly<SearchResultsProps>) => {
   const results = activeMenuIndex === 0 ? pupilSearchResults : resourceSearchResults;
@@ -34,14 +32,7 @@ const SearchResults = ({
     return <Message>{tooShort ? MIN_SEARCH_MESSAGE : 'Ingen data hittades...'}</Message>;
   }
 
-  return (
-    <Table
-      data={results}
-      activeMenuIndex={activeMenuIndex}
-      isPrintMode={isPrintMode}
-      selectedSchoolName={selectedSchoolName}
-    />
-  );
+  return <Table data={results} activeMenuIndex={activeMenuIndex} selectedSchoolName={selectedSchoolName} />;
 };
 
 interface PupilsContentProps {
@@ -50,7 +41,6 @@ interface PupilsContentProps {
   selectedClassId: string;
   selectedSchoolName: string;
   searchFieldTouched: boolean;
-  isPrintMode: boolean;
 }
 
 const PupilsContent = ({
@@ -59,7 +49,6 @@ const PupilsContent = ({
   selectedClassId,
   selectedSchoolName,
   searchFieldTouched,
-  isPrintMode,
 }: Readonly<PupilsContentProps>) => {
   if (!selectedSchoolId) return <Message>Välj först en skola och sedan en klass.</Message>;
   if (!selectedClassId) return <Message>Välj en klass.</Message>;
@@ -71,7 +60,6 @@ const PupilsContent = ({
     <Table
       data={pupils}
       activeMenuIndex={0}
-      isPrintMode={isPrintMode}
       selectedSchoolName={selectedSchoolName}
       selectedClassId={selectedClassId}
     />
