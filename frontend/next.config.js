@@ -24,6 +24,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 module.exports = withBundleAnalyzer({
   output: 'standalone',
   images: {
+    // next/image is not used; disabling the optimizer closes the /_next/image endpoint.
+    unoptimized: true,
     remotePatterns: process.env.DOMAIN_NAME ? [{ protocol: 'https', hostname: process.env.DOMAIN_NAME }] : [],
     formats: ['image/avif', 'image/webp'],
   },
