@@ -6,16 +6,19 @@ import { apiURL } from '@utils/api-url';
 import { getInitials } from '@utils/get-initials';
 import { Edit, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import useSchoolStore from 'src/store/useSchoolStore.store';
+import useSchoolStore from '@store/useSchoolStore.store';
 
-const imageUrlToBase64 = async (url: string) => {
+const imageUrlToBase64 = async (url: string): Promise<string> => {
   const response = await fetch(url, { credentials: 'include' });
+  if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) {
+    return '';
+  }
   const blob = await response.blob();
-  return new Promise((onSuccess, onError) => {
+  return new Promise<string>((onSuccess, onError) => {
     try {
       const reader = new FileReader();
       reader.onload = function () {
-        onSuccess(this.result);
+        onSuccess(typeof this.result === 'string' ? this.result : '');
       };
       reader.readAsDataURL(blob);
     } catch (e) {
@@ -24,10 +27,13 @@ const imageUrlToBase64 = async (url: string) => {
   });
 };
 
-const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<Record<string, string>> => {
+const fetchPrefetchedImages = async (
+  data: Pupil[],
+  prefetchedImages: Record<string, string>
+): Promise<Record<string, string>> => {
   const imagePromises = data.map(async (pupil) => {
-    if (!prefetchedImages[pupil.personId] && pupil.personId) {
-      const base64Image = (await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`))) as string; // Pass the raw ArrayBuffer from the response
+    if (!(pupil.personId in prefetchedImages) && pupil.personId) {
+      const base64Image = await imageUrlToBase64(apiURL(`/image/${pupil.personId}?width=480`)).catch(() => '');
 
       return { [pupil.personId]: base64Image };
     }
@@ -37,21 +43,18 @@ const fetchPrefetchedImages = async (data: Pupil[], prefetchedImages): Promise<R
   const resolvedImages = await Promise.all(imagePromises);
 
   // Merge all objects into a single object
-  return resolvedImages.reduce(
-    (acc, curr) => {
-      if (curr) {
-        Object.assign(acc, curr);
-      }
-      return acc;
-    },
-    prefetchedImages as Record<string, string>
-  );
+  const merged: Record<string, string> = { ...prefetchedImages };
+  for (const curr of resolvedImages) {
+    if (curr) {
+      Object.assign(merged, curr);
+    }
+  }
+  return merged;
 };
 
 interface TableProps {
   data: (Pupil | ResourceData)[];
   activeMenuIndex: number;
-  isPrintMode?: boolean;
   selectedSchoolName: string;
   selectedSchoolId?: string;
   selectedClassId?: string;
@@ -60,7 +63,6 @@ interface TableProps {
 export const Table: React.FunctionComponent<TableProps> = ({
   data,
   activeMenuIndex,
-  isPrintMode,
   selectedSchoolId,
   selectedClassId,
 }) => {
@@ -69,7 +71,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   const [prefetchedImages, setPrefetchedImages] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
 
-  const pageSize = isPrintMode ? 1000 : 10;
+  const pageSize = 10;
   const pagedData = data.slice((page - 1) * pageSize, page * pageSize);
 
   const { showConfirmation } = useConfirm();
@@ -86,10 +88,10 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   useEffect(() => {
     if (isPupilType) {
-      getPrefetchedImages(isPrintMode ? data : pagedData);
+      void getPrefetchedImages(pagedData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPupilType, page, isPrintMode]);
+  }, [isPupilType, page]);
 
   const studentHeaders: AutoTableHeader[] = [
     {
@@ -98,7 +100,12 @@ export const Table: React.FunctionComponent<TableProps> = ({
       isShown: true,
       isColumnSortable: false,
       renderColumn: (value: string, obj: Pupil) => (
-        <Avatar imageUrl={prefetchedImages[obj.personId]} rounded initials={getInitials(value)} size="md" />
+        <Avatar
+          imageUrl={prefetchedImages[obj.personId] || undefined}
+          rounded
+          initials={getInitials(obj.displayname)}
+          size="md"
+        />
       ),
     },
     {
@@ -134,35 +141,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
       ),
       isColumnSortable: false,
     },
-  ]
-    .filter((x) => {
-      if (isPrintMode) {
-        if (['image', 'displayname', 'loginname'].includes(x.property)) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
-    })
-    .map((x) =>
-      x.property === 'image' && isPrintMode
-        ? {
-            property: 'image',
-            label: 'Bild',
-            isShown: true,
-            isColumnSortable: false,
-            renderColumn: (value: string, obj: Pupil) => (
-              <img
-                style={{ display: 'inline-block', height: '100%' }}
-                src={prefetchedImages[obj.personId]}
-                alt="bild på even"
-              />
-            ),
-          }
-        : x
-    );
+  ];
 
   const resursHeaders: AutoTableHeader[] = [
     {
@@ -208,10 +187,11 @@ export const Table: React.FunctionComponent<TableProps> = ({
 
   const handleSavePupil = () => {
     handleCloseModal();
-    selectedClassId && fetchPupils(selectedClassId);
+    if (selectedClassId) void fetchPupils(selectedClassId);
   };
 
   const deleteResource = async (user: ResourceData) => {
+    if (!selectedSchoolId) return;
     const confirmationTitle = 'Ta bort resurs';
     const confirmationMessage = (
       <>
@@ -248,14 +228,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
   };
 
   return (
-    <div
-      role="main"
-      className="mt-6"
-      id={isPrintMode ? 'table-to-export' : ''}
-      style={isPrintMode ? { display: 'none' } : {}}
-      aria-live="polite"
-      aria-atomic="true"
-    >
+    <div className="mt-6" aria-live="polite" aria-atomic="true">
       {data && data.length > 0 && (
         <AutoTable
           background={true}

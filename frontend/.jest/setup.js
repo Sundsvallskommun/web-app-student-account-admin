@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom/extend-expect'
+import '@testing-library/jest-dom';
 global.XMLHttpRequest = undefined;
 
 global.resizeWindow = (width, height) => {
@@ -33,27 +33,15 @@ jest.mock('next/image', () => ({
   },
 }));
 
-jest.mock('next/router', () => ({
-  push: jest.fn().mockImplementation(() => Promise.resolve()),
-  back: jest.fn(),
-  events: {
-    on: jest.fn(),
-    off: jest.fn(),
-  },
-  query: {},
-  route: '',
-  beforePopState: jest.fn(() => null),
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    route: '/',
-    pathname: '',
-    query: {},
-    asPath: '',
     push: jest.fn().mockImplementation(() => Promise.resolve()),
-    events: {
-      on: jest.fn(),
-      off: jest.fn()
-    },
-    beforePopState: jest.fn(() => null),
-    prefetch: jest.fn(() => null)
+    replace: jest.fn().mockImplementation(() => Promise.resolve()),
+    back: jest.fn(),
+    prefetch: jest.fn(() => null),
+    refresh: jest.fn(),
   }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
 }));

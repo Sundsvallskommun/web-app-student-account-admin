@@ -1,8 +1,9 @@
+import { getApiBase, MUNICIPALITY_ID } from '@/config';
 import { HttpException } from '@/exceptions/HttpException';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { Class, Pupil, Resource, School } from '@/interfaces/school';
 import authMiddleware from '@/middlewares/auth.middleware';
-import { hasPermissions, hasRoles } from '@/middlewares/permissions.middleware';
+import { hasPermissions } from '@/middlewares/permissions.middleware';
 import ApiService from '@/services/api.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post, QueryParam, Req, UseBefore } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
@@ -16,6 +17,7 @@ interface ResponseData<T> {
 @Controller()
 export class SchoolController {
   private apiService = new ApiService();
+  private readonly apiBase = `${getApiBase('pupilAccountManager')}/${MUNICIPALITY_ID}`;
 
   @Get('/schools')
   @OpenAPI({ summary: 'Get all schools that user has access too by login name' })
@@ -24,7 +26,7 @@ export class SchoolController {
     const { username } = req.user;
 
     try {
-      const url = `/education/1.0/schools?loginName=${username}`;
+      const url = `${this.apiBase}/schools?loginName=${username}`;
 
       const res = await this.apiService.get<School[]>({ url });
       return { data: res.data, message: 'success', status: 200 };
@@ -40,7 +42,7 @@ export class SchoolController {
     const { username } = req.user;
 
     try {
-      const url = `/education/1.0/school/${schoolId}/classes?loginName=${username}`;
+      const url = `${this.apiBase}/school/${schoolId}/classes?loginName=${username}`;
       const res = await this.apiService.get<Class[]>({ url });
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {
@@ -51,11 +53,14 @@ export class SchoolController {
   @Get('/schoolclass/:schoolClassId/pupils')
   @OpenAPI({ summary: 'Get list of pupils in a specific class' })
   @UseBefore(authMiddleware)
-  async getPupils(@Param('schoolClassId') schoolClassId: string, @Req() req: RequestWithUser): Promise<ResponseData<Pupil[]>> {
+  async getPupils(
+    @Param('schoolClassId') schoolClassId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Pupil[]>> {
     const { username } = req.user;
 
     try {
-      const url = `/education/1.0/schoolclass/${schoolClassId}/pupils?loginName=${username}`;
+      const url = `${this.apiBase}/schoolclass/${schoolClassId}/pupils?loginName=${username}`;
       const res = await this.apiService.get<Pupil[]>({ url });
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {
@@ -73,7 +78,7 @@ export class SchoolController {
       const searchParams = req.query;
 
       const res = await this.apiService.get<Pupil[]>({
-        url: `/education/1.0/pupil/search?loginName=${username}`,
+        url: `${this.apiBase}/pupil/search?loginName=${username}`,
         params: searchParams,
       });
       return { data: res.data, message: 'success', status: 200 };
@@ -92,7 +97,7 @@ export class SchoolController {
       if (!username) {
         throw new HttpException(400, 'Pupil login name is required');
       }
-      const url = `/education/1.0/pupil/password?loginName=${username}`;
+      const url = `${this.apiBase}/pupil/password?loginName=${username}`;
       const res = await this.apiService.get<{ newPassword: string }>({ url });
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {
@@ -108,18 +113,18 @@ export class SchoolController {
     @Body() body: { isEnabled: boolean; displayname: string; password: string },
 
     @Req() req: RequestWithUser,
-  ): Promise<ResponseData<{ updatedPupil: any }>> {
+  ): Promise<ResponseData<{ updatedPupil: unknown }>> {
     try {
       const { isEnabled, displayname, password } = body;
       const { username } = req.user;
 
-      const url = `/education/1.0/pupil/${pupilLoginName}?loginName=${username}`;
+      const url = `${this.apiBase}/pupil/${pupilLoginName}?loginName=${username}`;
       const updateData = {
         isEnabled,
         displayname,
         password,
       };
-      const res = await this.apiService.patch<any>({ url, data: updateData });
+      const res = await this.apiService.patch<{ updatedPupil: unknown }>({ url, data: updateData });
 
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {
@@ -129,13 +134,16 @@ export class SchoolController {
 
   // Resources
 
-  @Get('/resources/:unitId')
+  @Get('/resources/:schoolId')
   @OpenAPI({ summary: 'Get all resources from a school' })
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
-  async getResources(@Param('unitId') unitId: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource[]>> {
+  async getResources(
+    @Param('schoolId') schoolId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Resource[]>> {
     const { username } = req.user;
     try {
-      const url = `/education/1.0/resources/${unitId}?loginName=${username}`;
+      const url = `${this.apiBase}/resources/${schoolId}?loginName=${username}`;
 
       const res = await this.apiService.get<Resource[]>({ url });
       return { data: res.data, message: 'success', status: 200 };
@@ -148,14 +156,14 @@ export class SchoolController {
   @OpenAPI({ summary: 'Add a resource to a school' })
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async addResourceToSchool(
-    @Body() body: { resourceLoginName: string; unitId: string },
+    @Body() body: { resourceLoginName: string; schoolId: string },
     @Req() req: RequestWithUser,
   ): Promise<ResponseData<Resource[]>> {
     try {
-      const { resourceLoginName, unitId } = body;
+      const { resourceLoginName, schoolId } = body;
       const { username } = req.user;
 
-      const url = `/education/1.0/resource?resourceLoginName=${resourceLoginName}&unitId=${unitId}&creatorLoginName=${username}`;
+      const url = `${this.apiBase}/resource?resourceLoginName=${resourceLoginName}&schoolId=${schoolId}&creatorLoginName=${username}`;
 
       const res = await this.apiService.post<Resource[]>({ url });
       return { data: res.data, message: 'Resource added successfully', status: 200 };
@@ -169,13 +177,13 @@ export class SchoolController {
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin', 'canEditAdmin']))
   async deleteResourceFromSchool(
     @QueryParam('resourceLoginName') resourceLoginName: string,
-    @QueryParam('unitId') unitId: string,
+    @QueryParam('schoolId') schoolId: string,
     @Req() req: RequestWithUser,
   ): Promise<ResponseData<{ message: string }>> {
     try {
       const { username } = req.user;
 
-      const url = `/education/1.0/resource?resourceLoginName=${resourceLoginName}&unitId=${unitId}&creatorLoginName=${username}`;
+      const url = `${this.apiBase}/resource?resourceLoginName=${resourceLoginName}&schoolId=${schoolId}&creatorLoginName=${username}`;
 
       const res = await this.apiService.delete<{ message: string }>({ url });
       return { data: res.data, message: 'Resource added successfully', status: 200 };
@@ -187,14 +195,17 @@ export class SchoolController {
   @Get('/resources/search/:searchTerm')
   @OpenAPI({ summary: 'Search for resources' })
   @UseBefore(authMiddleware, hasPermissions(['canViewAdmin']))
-  async searchResources(@Param('searchTerm') searchTerm: string, @Req() req: RequestWithUser): Promise<ResponseData<Resource>> {
+  async searchResources(
+    @Param('searchTerm') searchTerm: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ResponseData<Resource>> {
     const { username } = req.user;
 
     try {
       if (!searchTerm) {
         throw new HttpException(400, 'Search term is required');
       }
-      const url = `/education/1.0/resources/search/${searchTerm}?loginName=${username}`;
+      const url = `${this.apiBase}/resources/search/${searchTerm}?loginName=${username}`;
       const res = await this.apiService.get<Resource>({ url });
       return { data: res.data, message: 'success', status: 200 };
     } catch (error) {

@@ -1,0 +1,6 @@
+.vscode/launch.json
+.vscode/settings.json
+
+# Transient API spec dumps + codegen input (see backend/src/swagger-typescript-api.ts)
+backend/.tmp-specs/
+backend/src/data-contracts/**/swagger.json

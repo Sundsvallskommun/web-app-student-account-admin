@@ -1,16 +1,25 @@
+import { getApiBase } from '@/config';
 import ApiService from '@/services/api.service';
 import { logger } from '@/utils/logger';
+import { isRedisReady } from '@utils/initRedis';
+import { HttpException } from '@exceptions/HttpException';
 import { Controller, Get } from 'routing-controllers';
 import { OpenAPI } from 'routing-controllers-openapi';
 
 @Controller()
 export class HealthController {
   private apiService = new ApiService();
+  private readonly apiBase = getApiBase('simulatorserver');
 
   @Get('/health/up')
   @OpenAPI({ summary: 'Return health check' })
   async up() {
-    const url = `simulatorserver/2.0/simulations/response?status=200%20OK`;
+    if (!isRedisReady()) {
+      logger.error('Health check failed: Redis is not ready');
+      throw new HttpException(503, 'Health check failed');
+    }
+
+    const url = `${this.apiBase}/simulations/response?status=200%20OK`;
     const data = {
       status: 'OK',
     };

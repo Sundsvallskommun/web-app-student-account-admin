@@ -1,14 +1,24 @@
 import { config } from 'dotenv';
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+export { APIS, getApiBase } from './api-config';
+
+config({ path: `.env.${process.env.NODE_ENV || 'development'}.local`, quiet: true });
 
 export const CREDENTIALS = process.env.CREDENTIALS === 'true';
 export const SWAGGER_ENABLED = process.env.SWAGGER_ENABLED === 'true';
-export const SESSION_MEMORY = process.env.SESSION_MEMORY === 'true';
+// Session store: memory (default, local dev) | file (./data/sessions) | redis (OpenShift / multi-pod)
+export const SESSION_STORE = process.env.SESSION_STORE || 'memory';
+export const REDIS_HOST = process.env.REDIS_HOST;
+export const REDIS_PORT = process.env.REDIS_PORT;
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+// Namespaces every Redis key this application owns. Override via REDIS_KEY_PREFIX only when
+// several applications share one Redis instance.
+export const REDIS_KEY_PREFIX = process.env.REDIS_KEY_PREFIX || 'student-account-admin';
 
 export const {
   NODE_ENV,
   PORT,
   API_BASE_URL,
+  MUNICIPALITY_ID,
   LOG_FORMAT,
   LOG_DIR,
   ORIGIN,

@@ -1,17 +1,26 @@
+'use client';
+
 import { Avatar, CookieConsent, Footer, Header, Link } from '@sk-web-gui/react';
-import { useRef } from 'react';
+import { ReactNode, useRef } from 'react';
 import { useUserStore } from '@services/user-service/user-service';
 
-import Head from 'next/head';
 import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { getInitials } from '@utils/get-initials';
 
-export default function DefaultLayout({ title, children }) {
-  const initialFocus = useRef(null);
+interface DefaultLayoutProps {
+  children: ReactNode;
+}
+
+export default function DefaultLayout({ children }: Readonly<DefaultLayoutProps>) {
+  const initialFocus = useRef<HTMLAnchorElement>(null);
+  const router = useRouter();
+  const { t } = useTranslation();
 
   const setInitialFocus = () => {
     setTimeout(() => {
-      initialFocus.current && initialFocus.current.focus();
+      initialFocus.current?.focus();
     });
   };
 
@@ -21,21 +30,14 @@ export default function DefaultLayout({ title, children }) {
 
   return (
     <div className="DefaultLayout full-page-layout">
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content="Elevkontohantering" />
-      </Head>
-
-      <NextLink legacyBehavior={true} href="#content" passHref>
-        <a onClick={setInitialFocus} accessKey="s" className="next-link-a">
-          Hoppa till innehåll
-        </a>
+      <NextLink href="#content" onClick={setInitialFocus} className="next-link-a">
+        {t('layout:header.goto_content')}
       </NextLink>
 
       <Header
-        title={`Kontohantering`}
-        subtitle="Elever och resurser"
-        LogoLinkWrapperComponent={<NextLink legacyBehavior={true} href={'/'} passHref />}
+        title={t('layout:header.title')}
+        subtitle={t('layout:header.subtitle')}
+        logoLinkOnClick={() => router.push('/')}
       >
         <Avatar imageAlt="Avatar" imageUrl="" initials={userInitials} rounded />
       </Header>
@@ -47,35 +49,29 @@ export default function DefaultLayout({ title, children }) {
       </div>
 
       <CookieConsent
-        title="Kakor på Kontohantering"
+        title={t('layout:cookies.title')}
         body={
           <p>
-            Vi använder kakor, cookies, för att ge dig en förbättrad upplevelse, sammanställa statistik och för att viss
-            nödvändig funktionalitet ska fungera på webbplatsen.{' '}
-            <NextLink href="/kakor" passHref>
-              <Link as="span">Läs mer om hur vi använder kakor</Link>
-            </NextLink>
+            {t('layout:cookies.description')} <Link href="/kakor">{t('layout:cookies.read_more')}</Link>
           </p>
         }
         cookies={[
           {
             optional: false,
-            displayName: 'Nödvändiga kakor',
-            description:
-              'Dessa kakor är nödvändiga för att webbplatsen ska fungera och kan inte stängas av i våra system.',
+            displayName: t('layout:cookies.necessary.displayName'),
+            description: t('layout:cookies.necessary.description'),
             cookieName: 'necessary',
           },
           {
             optional: true,
-            displayName: 'Funktionella kakor',
-            description: ' Dessa kakor ger förbättrade funktioner på webbplatsen.',
+            displayName: t('layout:cookies.func.displayName'),
+            description: t('layout:cookies.func.description'),
             cookieName: 'func',
           },
           {
             optional: true,
-            displayName: 'Kakor för statistik',
-            description:
-              'Dessa kakor tillåter oss att räkna besök och trafikkällor, så att vi kan mäta och förbättra prestanda på vår webbplats.',
+            displayName: t('layout:cookies.stats.displayName'),
+            description: t('layout:cookies.stats.description'),
             cookieName: 'stats',
           },
         ]}

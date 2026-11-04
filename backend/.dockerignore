@@ -3,12 +3,10 @@
 /node_modules
 
 # code formatter
-.eslintrc
-.eslintignore
+eslint.config.mjs
 .editorconfig
-.huskyrc
-.lintstagedrc.json
 .prettierrc
+.prettierignore
 
 # test
 jest.config.js
@@ -16,3 +14,11 @@ jest.config.js
 # docker
 Dockerfile
 docker-compose.yml
+
+# local environment and runtime data (never bake into the image)
+.env
+.env.*.local
+.env.local
+data
+dist
+src/tests

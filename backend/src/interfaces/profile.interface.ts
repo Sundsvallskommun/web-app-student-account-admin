@@ -1,4 +1,4 @@
-import { Profile as SamlProfile } from 'passport-saml';
+import { Profile as SamlProfile } from '@node-saml/passport-saml';
 
 export interface Profile extends SamlProfile {
   // Field names depend on federation system used
@@ -10,6 +10,6 @@ export interface Profile extends SamlProfile {
   'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'?: string;
   groups?: string;
   'http://schemas.xmlsoap.org/claims/Group'?: string[];
-  attributes: { [key: string]: any };
+  attributes: { [key: string]: unknown };
   'urn:oid:0.9.2342.19200300.100.1.1'?: string;
 }
