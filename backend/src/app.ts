@@ -44,6 +44,7 @@ import { Profile } from '@interfaces/profile.interface';
 import { join } from 'path';
 import { getPermissions, getRole } from '@services/authorization.service';
 import { isValidOrigin, safeRedirectUrl } from '@utils/util';
+import { livenessHandler } from '@/routes/liveness.route';
 
 const SessionStoreCreate = SESSION_MEMORY ? createMemoryStore(session) : createFileStore(session);
 const sessionTTL = 4 * 24 * 60 * 60;
@@ -148,6 +149,7 @@ class App {
 
     this.initializeDataFolders();
 
+    this.initializeLivenessRoute();
     this.initializeMiddlewares();
     this.initializeRoutes(Controllers);
     if (this.swaggerEnabled) {
@@ -163,6 +165,15 @@ class App {
       logger.info(`🚀 App listening on the port ${this.port}`);
       logger.info(`=================================`);
     });
+  }
+
+  /**
+   * Registers the liveness probe outside the routing-controllers prefix, so the path stays
+   * `/health` whatever BASE_URL_PREFIX is set to, and ahead of the shared middleware chain,
+   * so probe traffic is never rate limited, session-loaded or written to the request log.
+   */
+  private initializeLivenessRoute() {
+    this.app.get('/health', livenessHandler);
   }
 
   private initializeMiddlewares() {
