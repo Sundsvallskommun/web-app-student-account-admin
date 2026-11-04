@@ -1082,6 +1082,31 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.3.6.tgz#3569708bd4be4d8870ba32bf1c456dac81600d97"
   integrity sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==
 
+"@redis/bloom@6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-6.3.1.tgz#5dbbab09a81329bf567a76cfc5a3a9b298ed84bb"
+  integrity sha512-dpF9j2yJDoPzSCaZn0MSB3xzmnXQVJeTSAWJcQVcgbmluwhpFeemmII0cF1t+WYfoVS+shEFq79+MmUItgzJLg==
+
+"@redis/client@6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-6.3.1.tgz#2c77b3835ddfecb7024b0518d363f0fba07fadb7"
+  integrity sha512-masbfVKULdoAofwddepZxRhWa4w6zvBHn6TRn90TRPrRkVIlGCur3pFqwWaCbMxtYI9twepkz63e/T/tEH8GjA==
+
+"@redis/json@6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@redis/json/-/json-6.3.1.tgz#b2ad71b13cbea2d2551537aee2d5c9ff06a6478c"
+  integrity sha512-fMz4kUwJzEftcU9EMaqsjZcUwzpTQLOYRqhQsAD6uKvZWeamblK13ZhgO5SzVSZVk31jmwLeTRpU5GAl5egfUw==
+
+"@redis/search@6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@redis/search/-/search-6.3.1.tgz#db2fd8592c69d142f62626757ddbbc22d310bc52"
+  integrity sha512-T67pvPUpW82VrZLvihO8O2DFMC7eY2oMAzMzapCbiPZn7mdWqHMEIlohYim12gIawT5kn6qT/Cvmm4WulKB+kQ==
+
+"@redis/time-series@6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-6.3.1.tgz#a5afcae70455603e5f8f9a9ce1f8836f7859d1e1"
+  integrity sha512-MNDgrm+i63M/1a+XA+HcDsScwt4uBh/fGGJ84swTQZTFK5K5wMmxdlTRa4ZgmNJzjxMaszW/ipPScMUGV3aAMg==
+
 "@scarf/scarf@=1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@scarf/scarf/-/scarf-1.4.0.tgz#3bbb984085dbd6d982494538b523be1ce6562972"
@@ -2606,6 +2631,11 @@ confbox@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/confbox/-/confbox-0.3.1.tgz#79aa91893791a202fb349fb367e7320423f7c76e"
   integrity sha512-cKUSoKa8YxFZZSmraVi7onONx3amu77ngK3kGpsYHDH7drPwCRkQE1RYMPlLRrMtnciRj274XNRxcHxnKmDSnA==
+
+connect-redis@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/connect-redis/-/connect-redis-10.0.0.tgz#8f364b3c3a3a19f513c2e08e3cd8572edb830f7d"
+  integrity sha512-x6EotIY20pvocamMtcOsgxFzYufAMfipE+rjWa0cZMeSx+3K0yoHi4Nv4sfMlgF+Z5KnUbMFxyCx9pDZP39p0Q==
 
 consola@^3.4.2:
   version "3.4.2"
@@ -5422,6 +5452,17 @@ readdirp@~3.6.0:
   integrity sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==
   dependencies:
     picomatch "^2.2.1"
+
+redis@^6.3.1:
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-6.3.1.tgz#2a8565c7254790b1346b241968b88304e949e6ef"
+  integrity sha512-mV96ZKxQ4CGn3SyEGaY0Lb9YA443mdVey3c+mdr0NAUaBxiOZGoYCWX8PoM55kictSOmxlJRtZJxIsmZm3jL+w==
+  dependencies:
+    "@redis/bloom" "6.3.1"
+    "@redis/client" "6.3.1"
+    "@redis/json" "6.3.1"
+    "@redis/search" "6.3.1"
+    "@redis/time-series" "6.3.1"
 
 reflect-metadata@^0.1.13:
   version "0.1.14"

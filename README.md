@@ -73,3 +73,33 @@ redigera `.env.development.local` för behov. URLer, nycklar och cert behöver f
 - `SAML_ENTRY_SSO` behöver pekas till en SAML IDP
 - `SAML_IDP_PUBLIC_CERT` ska stämma överens med IDPens cert
 - `SAML_PRIVATE_KEY` och `SAML_PUBLIC_KEY` behöver bara fyllas i korrekt om man kör mot en riktig IDP
+
+### Session-hantering (Memory / File / Redis)
+
+Backend använder `express-session` för sessionshantering. Session store väljs via miljövariabeln `SESSION_STORE`.
+
+| Värde    | Beskrivning                          | Rekommenderad miljö   |
+| -------- | ------------------------------------ | --------------------- |
+| `memory` | In-memory store (default)            | Lokal utveckling      |
+| `file`   | Filbaserad store (`./data/sessions`) | Lokal test / legacy   |
+| `redis`  | Redis-baserad store                  | OpenShift / multi-pod |
+
+I OpenShift används Redis för sessioner, vilket gör backend stateless så att flera poddar kan köras. Med Redis delas även OAuth-token mot API-gatewayn mellan poddarna via Redis (`src/services/api-token-service/redis-api-token.service.ts`). Alla nycklar i Redis prefixas med `REDIS_KEY_PREFIX` (default `student-account-admin`), så att flera applikationer kan dela en Redis-instans utan att krocka.
+
+Följande miljövariabler sätts via Deployment / Helm / ArgoCD:
+
+```
+SESSION_STORE=redis
+REDIS_HOST=<redis-host>
+REDIS_PORT=6379
+REDIS_PASSWORD=<secret>
+# REDIS_KEY_PREFIX=student-account-admin
+```
+
+Redis initieras endast när `SESSION_STORE=redis` (`src/utils/initRedis.ts`). Saknas `REDIS_HOST` när Redis är vald kraschar applikationen direkt vid start med:
+
+```
+Failed to start app: Error: SESSION_STORE=redis but REDIS_HOST is not set
+```
+
+Health-endpointen `/health/up` svarar `503` tills Redis-klienten är redo, så den kan användas som readiness-probe. Lokal utveckling kräver ingen Redis, samma kodbas används i alla miljöer.
