@@ -27,6 +27,14 @@ RUN adduser --system --uid 1001 nodejs
 
 COPY --from=builder --chown=nodejs:nodejs /app/ ./
 
+# The only runtime writes are rotating log files under /app/data/logs (and ./data/sessions when
+# SESSION_STORE=file, which is not used in OpenShift). Sessions and the gateway token live in Redis
+# (SESSION_STORE=redis), so the pod needs no volume and can run with several replicas.
+# OpenShift runs the container as an arbitrary UID in group 0, so group write is required.
+RUN mkdir -p /app/data \
+ && chown 1001:0 /app/data \
+ && chmod g+w /app/data
+
 USER nodejs
 
 EXPOSE 3000
