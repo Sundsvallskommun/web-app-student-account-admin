@@ -1,4 +1,4 @@
-import { apiService } from '@services/api-service';
+import axios from 'axios';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -15,7 +15,9 @@ export const GET = async () => {
   }
 
   try {
-    const health = await apiService.get('health/up').then((res) => res.data);
+    const health = await axios
+      .get(`${process.env.INTERNAL_API_URL}/health/up`, { timeout: 3000 })
+      .then((res) => res.data);
     return NextResponse.json(health);
   } catch {
     return NextResponse.json({ status: 'ERROR!' }, { status: 500 });
